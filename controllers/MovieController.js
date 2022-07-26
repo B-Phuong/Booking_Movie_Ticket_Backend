@@ -1,8 +1,16 @@
+require('dotenv').config();
 const { NativeDate } = require("mongoose");
 const Movie = require("../models/Movie");
 const ShowTime = require("../models/Showtime");
 const TicketBooking = require("../models/TicketBooking");
-
+const { removeVietnameseTones } = require("../helper/formatString");
+const upload = require("../services/multer");
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 class MovieController {
   //[GET] /movie/:bidanh
   showDetail(req, res, next) {
@@ -64,35 +72,34 @@ class MovieController {
         // return next(err)
       });
   }
-
-  // showMovieShowing(req, res, next) {
-  //   Movie.find({ daXoa: false })
-  //     .then((data) => {
-  //       // console.log(data);
-  //       if (data.length != 0) {
-  //         const movieShowting = []
-  //         data.forEach((movie) => {
-  //           const formatDate = new Date(movie.ngayKhoiChieu)
-  //           console.log(formatDate)
-  //           if (formatDate.addMonths(2) > Date.now())
-  //             movieShowting.push(movie)
-  //         })
-  //         res.status(200).json(movieShowting);
-  //       }
-  //       else {
-  //         res.status(404).json("Chưa có phim nào");
-  //         // const err = new Error('Chưa có phim nào');
-  //         // err.statusCode = 404
-  //         // return next(err)
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       res.status(500).json("Hệ thống đang xử lý, vui lòng chờ");
-  //       // err = new Error('Hệ thống đang xử lý, vui lòng chờ');
-  //       // err.statusCode = 500
-  //       // return next(err)
-  //     });
-  // }
+  //[GET]
+  showMovieComing(req, res, next) {
+    Movie.find({ daXoa: false })
+      .then((data) => {
+        // console.log(data);
+        if (data.length != 0) {
+          const movieComing = []
+          data.forEach((movie) => {
+            const formatDate = new Date(movie.ngayKhoiChieu)
+            if (formatDate > Date.now())
+              movieComing.push(movie)
+          })
+          res.status(200).json(movieComing);
+        }
+        else {
+          res.status(404).json("Chưa có phim nào");
+          // const err = new Error('Chưa có phim nào');
+          // err.statusCode = 404
+          // return next(err)
+        }
+      })
+      .catch((err) => {
+        res.status(500).json("Hệ thống đang xử lý, vui lòng chờ");
+        // err = new Error('Hệ thống đang xử lý, vui lòng chờ');
+        // err.statusCode = 500
+        // return next(err)
+      });
+  }
 
   showMovieByCluster(req, res, next) {
     Movie.find({ daXoa: false })
@@ -134,34 +141,44 @@ class MovieController {
         // return next(err)
       });
   }
-
-
-  //[PUT] /movie/edit/:bidanh
-  edit(req, res, next) {
-    Movie.findOneAndUpdate({ biDanh: req.params.bidanh }, req.body)
+  //[PUT] /movie/:bidanh
+  async edit(req, res, next) {
+    const movie = await Movie.findOne({ biDanh: req.params.bidanh })
+    const movieUpdate = {
+      ...movie._doc,
+      ...req.body,
+      ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
+      thoiLuong: Number(req.body.thoiLuong),
+    };
+    try {
+      const fileStr = req.file.path;
+      const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
+      console.log(uploadResponse)
+      movieUpdate.hinhAnh = uploadResponse.url;
+      movieUpdate.maHinhAnh = uploadResponse.public_id;
+      cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
+    } catch (err) {
+      res.status(500).json({ err: 'Cập nhật thất bại' });
+    }
+    Movie.findOneAndUpdate({ biDanh: req.params.bidanh }, movieUpdate)
       .then((data) => {
         if (data) {
           res.status(200).json("Cập nhật thành công");
         } else {
           res.status(404).json({ error: "Cập nhật thất bại" });
-          // const err = new Error('Cập nhật thất bại');
-          // err.statusCode = 404
-          // return next(err)
         }
       })
       .catch((err) => {
         res.status(500).json({ error: "Hệ thống đang xử lý, vui lòng chờ" });
-        // err = new Error('Hệ thống đang xử lý, vui lòng chờ');
-        // err.statusCode = 500
-        // return next(err)
       });
   }
-  //[DELETE] /movie/delete/:bidanh
+
+  //[DELETE] /movie/:bidanh
   async delete(req, res, next) {
     Movie.find({ biDanh: req.params.bidanh })
       .populate("lichChieu")
       .then((movie) => {
-        console.log("phim", movie[0].lichChieu);
+        //console.log("phim", movie[0].lichChieu);
         var count = 0;
         movie[0].lichChieu.map((lichchieu) => {
           // console.log('lịch chiếu', lichchieu)
@@ -170,10 +187,12 @@ class MovieController {
             count++;
           }
         });
-        console.log("Kiểm tra lịch chiếu chưa thỏa:", count);
+        //console.log("Kiểm tra lịch chiếu chưa thỏa:", count);
         if (count == 0) {
           Movie.findOneAndUpdate({ biDanh: req.params.bidanh }, { daXoa: true })
-            .then(() => res.status(200).json({ message: "Xóa thành công" }))
+            .then(() => {
+              res.status(200).json({ message: "Xóa thành công" })
+            })
             .catch((err) => {
               res.status(500).json("Hệ thống đang xử lý, vui lòng chờ");
               // err = new Error('Hệ thống đang xử lý, vui lòng chờ');
@@ -182,36 +201,59 @@ class MovieController {
             });
         } else res.status(400).json({ message: "Xóa không thành công" });
       });
-
   }
-
   //[POST] /movie
   add(req, res, next) {
-    const ngaykhoichieu = new Date(req.body.ngayKhoiChieu);
-    const movie = new Movie(req.body);
-    console.log("ngày chiếu", ngaykhoichieu);
-    movie.ngayKhoiChieu = ngaykhoichieu; //.toISOString()
-    movie.ngayKetThuc = ngaykhoichieu.setMonth(ngaykhoichieu.getMonth() + 2)
-    Movie.find({ tenPhim: req.body.tenPhim.toUpperCase() })
-      .then((data) => {
+    const ngayKhoiChieu = new Date(req.body.ngayKhoiChieu);
+    const movie = new Movie({
+      tenPhim: req.body.tenPhim,
+      hinhAnh: "",
+      moTa: req.body.moTa,
+      trailer: req.body.trailer,
+      ngayKhoiChieu: ngayKhoiChieu,
+      thoiLuong: Number(req.body.thoiLuong),
+    });
+    movie.ngayKhoiChieu = ngayKhoiChieu; //.toISOString()
+    movie.ngayKetThuc = ngayKhoiChieu.setMonth(ngayKhoiChieu.getMonth() + 2)
+    Movie.find({ tenPhim: movie.tenPhim.toUpperCase() })
+      .then(async (data) => {
         if (data.length > 0)
           res.status(400).json({ error: "Tên phim đã được sử dụng" })
         else {
-          movie
-            .save()
-            .then(() => res.status(200).json(movie))
-            .catch((err) => {
-              res.status(500).json({ message: "Thêm phim thất bại" });
-              // err = new Error('Việc thêm phim thất bại');
-              // err.statusCode = 404
-              // return next(err)
-            });
+          let slug = removeVietnameseTones(movie.tenPhim)
+          slug = slug.split(" ").join("-").toLowerCase();
+          let allMoviesBySlug = await Movie.find({
+            "biDanh": {
+              "$regex": RegExp(slug, 'i')
+            },
+          }).sort({ 'createdAt': 1 });
+          if (allMoviesBySlug.length > 0) {
+            const splitSlugOfLast = allMoviesBySlug[allMoviesBySlug.length - 1].biDanh.split('-')
+            let currentNumber = Number(splitSlugOfLast[splitSlugOfLast.length - 1])
+            if (currentNumber) {
+              currentNumber++;
+            } else {
+              currentNumber = 1;
+            }
+            slug += `-${currentNumber}`
+          }
+          movie.biDanh = slug;
+          // Upload image to cloudinary
+          try {
+            const fileStr = req.file.path;
+            const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
+            console.log(uploadResponse)
+            movie.hinhAnh = uploadResponse.url;
+            movie.maHinhAnh = uploadResponse.public_id;
+            await movie.save()
+            res.status(201).json({ message: 'Thêm phim thành công', data: movie })
+          } catch (err) {
+            res.status(500).json({ err: 'Thêm phim thất bại' });
+          }
         }
       })
       .catch(() => {
-
       })
-
   }
   //[GET] topMoives
   top10Movies(req, res, next) {

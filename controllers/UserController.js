@@ -5,9 +5,8 @@ const jwt = require("jsonwebtoken");
 const Showtime = require("../models/Showtime");
 
 class UserController {
-  // với re là reqiure và res là response
+  // với re là require và res là response
 
-  //-----TỪ KHÚC NÀY TRỞ ĐI CHƯA GÁN route-----
   //[GET] /user/info/:id
   info(req, res, next) {
     User.find({ _id: req.user })

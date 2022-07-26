@@ -15,7 +15,6 @@ const multer = require("multer");
 //const shortid = require("shortid");
 const path = require("path");
 const ShowtimeController = require("../controllers/ShowtimeController");
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/uploads");
@@ -24,9 +23,30 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-const upload = multer({ storage: storage }).single('file');
-//Movie
 
+const upload = require("../services/multer");
+
+
+// const upload = multer({ storage: storage }).single('file');
+
+// Cloudinary
+// Require the cloudinary library
+// const cloudinary = require('cloudinary');
+
+// // Return "https" URLs by setting secure: true
+// cloudinary.config({
+//   secure: true
+// });
+
+require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+//Movie
 
 router.post(
   "/movie/:bidanh/showtime",
@@ -66,14 +86,16 @@ router.put(
   "/movie/:bidanh",
   Auth.checkPermission,
   Auth.checkAdmin,
-  validationMovie,
-  isRequestValidated,
-  movieController.edit
+  upload.single("hinhAnh"),
+  // validationMovie,
+  // isRequestValidated,
+  movieController.edit,
 );
 router.post(
   "/movie",
   Auth.checkPermission,
   Auth.checkAdmin,
+  upload.single("hinhAnh"),
   validationMovie,
   isRequestValidated,
   movieController.add
@@ -85,6 +107,21 @@ router.get(
   Auth.checkAdmin,
   userController.find
 );
+// router.delete(
+//   "/delete",
+//   Auth.checkPermission,
+//   // Auth.checkAdmin,
+//   async (req, res) => {
+//     console.log(req.body.public_id)
+//     try {
+//       // Delete image from cloudinary
+//       await cloudinary.uploader.destroy(req.body.public_id, { type: "upload" });
+//       return res.status(200).json({ message: 'Deleted' });
+//     } catch (err) {
+//       return res.status(500).json({ err: 'Something went wrong' });
+//     }
+//   }
+// );
 router.get(
   "/user",
   Auth.checkPermission,
@@ -92,20 +129,32 @@ router.get(
   userController.getAllUser
 );
 
-router.post(
-  "/upload",
-  Auth.checkPermission,
-  Auth.checkAdmin,
-  (req, res) => {
-    upload(req, res, (err) => {
-      if (err) {
-        return res.status(500).json(err)
-      }
+// router.post(
+//   "/upload",
+//   Auth.checkPermission,
+//   // Auth.checkAdmin,
+//   upload.single("image"),
+//   async (req, res, next) => {
+//     console.log(req.file)
+//     try {
+//       const fileStr = req.file.path;
+//       //console.log("fileStr", fileStr)
+//       const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
+//       console.log(uploadResponse);
+//       req.uploadResponse = uploadResponse;
+//       next()
+//       // return res.status(200).json({ message: 'Thêm ảnh thành công' });
+//     } catch (err) {
+//       console.error(err);
+//       return res.status(500).json({ err: 'Thêm ảnh thất bại' });
+//     }
+//   }
+// );
 
-      return res.status(200).send(req.file)
-    })
-  }
-);
+
+
+
+
 router.get(
   "/goodSales",
   Auth.checkPermission,
