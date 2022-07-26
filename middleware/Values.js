@@ -1,12 +1,8 @@
 const { check, validationResult } = require('express-validator');
 exports.validationMovie = [
-
     check('tenPhim')
         .notEmpty()
         .withMessage('Bạn chưa nhập tên phim'),
-    // check('tenPhim')
-    //     .exists()
-    //     .withMessage('Phim đã tồn tại'),
     check('ngayKhoiChieu')
         .notEmpty()
         .withMessage('Nhập ngày chiếu của phim'),
@@ -19,13 +15,6 @@ exports.validationMovie = [
     check('thoiLuong')
         .isFloat({ min: 0 })
         .withMessage('Thời lượng không được bé hơn 0'),
-    check('trailer')
-        .notEmpty()
-        .withMessage('Phim chưa có trailer'),
-    check('hinhAnh')
-        .notEmpty()
-        .withMessage('Chọn hình ảnh cho phim')
-
 ]
 exports.validationShowTime = [
 

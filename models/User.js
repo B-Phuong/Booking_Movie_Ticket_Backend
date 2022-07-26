@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const Schema = mongoose.Schema;
+require('dotenv').config()
 
 const User = new Schema({
   tentaiKhoan: { type: String, maxlength: 80, unique: true, trim: true, required: [true, 'Hãy nhập tên đăng nhập'] },
@@ -10,5 +11,6 @@ const User = new Schema({
   SDT: { type: String },
   maLoaiNguoiDung: { type: String, default: '1' },
   diemThuong: { type: Number, default: '0' },
+  anhDaiDien: { type: String, default: process.env.AVATAR_DEFAULT_URL }
 }, { timestamps: true });
 module.exports = mongoose.model('User', User);
