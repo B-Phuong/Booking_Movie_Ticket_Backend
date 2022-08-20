@@ -28,7 +28,7 @@ class ShowTimeController {
     return "";
   };
   //[POST] /movie/:bidanh/showtime
-  async add(req, res, next) {
+  async add(req, res) {
     //req.body.ngayChieu = req.body.ngayChieu.toLocaleString("en-AU")
     // console.log(req.body.ngayChieu)
     let ngaychieu = new Date(req.body.ngayChieu);
@@ -39,7 +39,6 @@ class ShowTimeController {
     });
     // let ngaychieu = new Date(req.body.ngayChieu) //= new Date
     const movie = await Movie.findOne({ biDanh: req.params.bidanh }).populate('lichChieu'); //
-
     // console.log('PHIM:', movie)
     // console.log('ngày chiếu ', new Date(req.body.ngayChieu))
     if (movie) {
@@ -57,10 +56,6 @@ class ShowTimeController {
         tenRap: showtime.tenRap,
         tenCumRap: showtime.tenCumRap,
       });
-      // const sameShowtimeCluster = await ShowTime.find({
-      //   ngayChieu: showtime.ngayChieu,
-      //   tenCumRap: showtime.tenCumRap,
-      // });
       await movie.lichChieu.forEach(async (st) => {
         if (st.ngayChieu.toLocaleString("en-AU") == showtime.ngayChieu.toLocaleString("en-AU") && st.tenCumRap === showtime.tenCumRap) {
           console.log('id rạp trùng', st.tenCumRap, showtime.tenCumRap)
@@ -96,58 +91,29 @@ class ShowTimeController {
           addShowtimeToMovie.lichChieu = [...LichChieu, id];
           //  addShowtimeToMovie.soLuongBan = addShowtimeToMovie.soLuongBan + 1;
           const Successful = await addShowtimeToMovie.save();
-          if (Successful) res.status(200).json("Tạo lịch chiếu thành công");
+          if (Successful)
+            res.status(201).json({ message: "Tạo lịch chiếu thành công", data: addShowtimeToMovie });
           else {
             res.status(400).json({ error: "Tạo lịch chiếu thất bại" });
-            // const err = new Error('Tạo lịch chiếu thất bại');
-            // err.statusCode = 400
-            // return next(err)
           }
         } else {
           res.status(400).json({ error: "Không thể tạo lịch chiếu cho phim" });
-          // const err = new Error('Không thể tạo lịch chiếu cho phim');
-          // err.statusCode = 400
-          // return next(err)
         }
       }
     }
-    // const dupShowtime = await ShowTime.findOne({ $and: [{ "ngayChieu": showtime.ngayChieu }, { "tenRap": showtime.tenRap }, { "tenCumRap": showtime.tenCumRap }] })
-
-    // if (dupShowtime.ngayChieu <= ngaychieu) {
-    //     res.status(400).json({ error: 'Không thể tạo lịch chiếu cho phim do rạp đang có lịch chiếu khác' })
-    //     // const err = new Error('Không thể tạo lịch chiếu cho phim do rạp đang có lịch chiếu khác');
-    //     // err.statusCode = 400
-    //     // return next(err)
-    // }
-    // else {
-
-    //console.log(showtime.gioKetThuc.toLocaleString("en-AU"))
-
-    // dateFormat(showtime.ngayChieu,"dddd s mmmm yyyy")
-    // const gioKetThuc = req.body.ngayChieu//.getHours() + (req.body.thoiLuong / 60)
-    // console.log(showtime.ngayChieu.toLocaleString("en-AU"))
-    // console.log(showtime.gioKetThuc.toLocaleString("en-AU"))
-    //const id = showtime._id
-    //console.log(showtime.ngayChieu)//
   }
 
   //[GET]
-  getAllChair(req, res, next) {
+  getAllChair(req, res) {
     Room.find({})
       .then((data) => {
         if (data) res.status(200).json(data);
         else {
           res.status(400).json({ error: "Dữ liệu đang trục trặc" });
-          // const err = new Error('Dữ liệu đang trục trặc');
-          // err.statusCode = 400
-          // return next(err)
         }
       })
       .catch((err) => {
         res.status(400).json({ error: "Vui lòng thử lại" });
-        // err = new Error('Vui lòng thử lại');
-        // err.statusCode = 400
-        // return next(err)
       });
   }
   //GET movie/movietheater
@@ -155,7 +121,7 @@ class ShowTimeController {
     Movietheater.find()
       .then((data) => {
         if (data.length > 0) {
-          res.status(200).json(data);
+          res.status(200).json({ data });
         } else res.status(404).json({ error: "Không tìm thấy cụm rạp chiếu" });
       })
       .catch((err) =>
@@ -168,7 +134,7 @@ class ShowTimeController {
     Room.find()
       .then((data) => {
         if (data.length > 0) {
-          res.status(200).json(data);
+          res.status(200).json({ data });
         } else res.status(404).json({ error: "Không tìm thấy các rạp chiếu" });
       })
       .catch((err) =>
@@ -183,7 +149,7 @@ class ShowTimeController {
     const IDShowTime = req.params.IDshowtime;
     const ticket = req.body.danhSachGhe;
     const rewardPoints = req.body.diemThuong
-    console.log('ĐIỂM THƯỞNG  **', rewardPoints)
+    // console.log('ĐIỂM THƯỞNG  **', rewardPoints)
     var DanhSachve = [];
     var GheDaChon = [];
     const showtime = await ShowTime.findById(IDShowTime);
@@ -207,7 +173,6 @@ class ShowTimeController {
       phim: movie._id,
       tienThanhToan: tienThanhToan,
     })
-
     //console.log('**Trong tình trạng đặt vé', booking)
     // console.log('**Trong tình trạng đặt vé', GheDaChon)
     booking
@@ -217,7 +182,6 @@ class ShowTimeController {
         showtime.gheDaChon = [...showtime.gheDaChon, ...GheDaChon]
         const soLuong = GheDaChon.length
         // const movie = await Movie.findOne({ biDanh: req.params.bidanh })
-
         const ticketBooking = await showtime.save();
         if (ticketBooking) {
           // const movie = await Movie.findOne({ biDanh: req.params.bidanh })
@@ -226,20 +190,20 @@ class ShowTimeController {
             //console.log('so lượng vé bán', movie);
             movie.save()
               .then(() => {
-                res.status(200).json({ tongTien: showtime.giaVe * GheDaChon.length })
+                res.status(201).json({ tongTien: showtime.giaVe * GheDaChon.length })
               })
               .catch()
             User.findOne({ _id: req.user })
               .then((data) => {
                 if (data) {
                   if (rewardPoints == 0) {
-                    console.log('ĐIỂM THƯỞNG', rewardPoints)
+                    // console.log('ĐIỂM THƯỞNG', rewardPoints)
                     data.diemThuong = data.diemThuong + Math.round((showtime.giaVe * GheDaChon.length) / 1000 * 0.05)
                     data.save()
                       .then()
                       .catch()
                   } else {
-                    console.log('ĐIỂM THƯỞNG', rewardPoints)
+                    //  console.log('ĐIỂM THƯỞNG', rewardPoints)
                     data.diemThuong = data.diemThuong - rewardPoints + Math.round((showtime.giaVe * GheDaChon.length - rewardPoints * 1000) / 1000 * 0.05)
                     data.save()
                       .then()
@@ -251,21 +215,19 @@ class ShowTimeController {
           }
           // res.status(200).json({ tongTien: showtime.giaVe * GheDaChon.length })
         } else res.status(500).json({ error: "Chưa thể tiến hành đặt vé" });
-        // .then()
-        // .catch(err => res.status(500).json({ error: 'Chưa thể tiến hành đặt vé' }))
       })
       .catch((err) => res.status(500).json({ error: "Đặt vé thất bại" }));
   }
 
-  goodSales(req, res) {
+  goodSales(res) {
     TicketBooking.find({})
       .then((data) => {
         if (data.length > 0) {
-          let toTal = 0;
+          let total = 0;
           data.forEach((showtime) => {
-            toTal += showtime.tienThanhToan;
+            total += showtime.tienThanhToan;
           });
-          res.status(200).json(toTal);
+          res.status(200).json(total);
         }
       })
       .catch((err) => res.status(500).json({ error: "Thử lại sau" }));
