@@ -29,19 +29,19 @@ class ShowTimeController {
   };
   //[POST] /movie/:bidanh/showtime
   async add(req, res) {
-    //req.body.ngayChieu = req.body.ngayChieu.toLocaleString("en-AU")
-    // console.log(req.body.ngayChieu)
     let ngaychieu = new Date(req.body.ngayChieu);
     console.log("ngày chiếu phim", ngaychieu);
     let showtime = new ShowTime({
       ...req.body,
       gioKetThuc: new Date(req.body.ngayChieu),
     });
-    // let ngaychieu = new Date(req.body.ngayChieu) //= new Date
     const movie = await Movie.findOne({ biDanh: req.params.bidanh }).populate('lichChieu'); //
-    // console.log('PHIM:', movie)
-    // console.log('ngày chiếu ', new Date(req.body.ngayChieu))
     if (movie) {
+      if (0 < ngaychieu.getHours() && ngaychieu.getHours() < 9) {
+        return res
+          .status(400)
+          .json({ error: "Hãy chọn lịch trong khung giờ từ 9h sáng tới 12h đêm" });
+      }
       const hour = ngaychieu.getHours() + movie.thoiLuong / 60; //
       const minute = ngaychieu.getMinutes() + (movie.thoiLuong % 60); //
       showtime.gioKetThuc.setHours(hour);
@@ -92,7 +92,7 @@ class ShowTimeController {
           //  addShowtimeToMovie.soLuongBan = addShowtimeToMovie.soLuongBan + 1;
           const Successful = await addShowtimeToMovie.save();
           if (Successful)
-            res.status(201).json({ message: "Tạo lịch chiếu thành công", data: addShowtimeToMovie });
+            res.status(201).json({ message: "Tạo lịch chiếu thành công", data: newShowtime });
           else {
             res.status(400).json({ error: "Tạo lịch chiếu thất bại" });
           }
@@ -144,79 +144,73 @@ class ShowTimeController {
 
   //[POST] /user/:bidanh/showtime/:IDshowtime
   async ticketBooking(req, res) {
-    // const token = req.headers.authorization.split(" ")[1];
-    // const user = jwt.verify(token, 'user');
     const IDShowTime = req.params.IDshowtime;
     const ticket = req.body.danhSachGhe;
-    const rewardPoints = req.body.diemThuong
-    // console.log('ĐIỂM THƯỞNG  **', rewardPoints)
-    var DanhSachve = [];
-    var GheDaChon = [];
+    seatList = [];
+    var seatPicked = [];
     const showtime = await ShowTime.findById(IDShowTime);
     if (showtime)
       ticket.forEach((dsGhe) => {
-        DanhSachve.push({ maGhe: dsGhe, giaGhe: showtime.giaVe });
-        GheDaChon.push(dsGhe);
+        seatList.push({ maGhe: dsGhe, giaGhe: showtime.giaVe });
+        seatPicked.push(dsGhe);
       });
     else (res.status(400).json({ error: 'Vui lòng kiểm tra lại lịch chiếu' }))
     const movie = await Movie.findOne({ biDanh: req.params.bidanh })
-    let tienThanhToan;
-    if (rewardPoints == 0) {
-      tienThanhToan = showtime.giaVe * GheDaChon.length;
-    }
-    else tienThanhToan = showtime.giaVe * GheDaChon.length - rewardPoints * 1000
+    let total;
+    // if (rewardPoints == 0) {
+    //   tienThanhToan = showtime.giaVe * GheDaChon.length;
+    // }
+    //else 
+    total = showtime.giaVe * seatPicked.length;// - rewardPoints * 1000
     //console.log('movie', movie)
     const booking = new TicketBooking({
       maLichChieu: IDShowTime,
-      danhSachVe: DanhSachve,
+      danhSachVe: seatList,
       tentaiKhoan: req.user,
       phim: movie._id,
-      tienThanhToan: tienThanhToan,
+      tienThanhToan: total,
     })
-    //console.log('**Trong tình trạng đặt vé', booking)
-    // console.log('**Trong tình trạng đặt vé', GheDaChon)
     booking
       .save()
       .then(async () => {
         //res.status(200).json('Đặt vé thành công')
-        showtime.gheDaChon = [...showtime.gheDaChon, ...GheDaChon]
-        const soLuong = GheDaChon.length
-        // const movie = await Movie.findOne({ biDanh: req.params.bidanh })
+        showtime.gheDaChon = [...showtime.gheDaChon, ...seatPicked]
+        const numberOfSeat = seatPicked.length
         const ticketBooking = await showtime.save();
         if (ticketBooking) {
-          // const movie = await Movie.findOne({ biDanh: req.params.bidanh })
           if (movie) {
-            movie.soLuongBan = movie.soLuongBan + soLuong;
-            //console.log('so lượng vé bán', movie);
+            movie.soLuongBan = movie.soLuongBan + numberOfSeat;
             movie.save()
               .then(() => {
-                res.status(201).json({ tongTien: showtime.giaVe * GheDaChon.length })
+                res.status(201).json({ tongTien: total })
               })
               .catch()
-            User.findOne({ _id: req.user })
-              .then((data) => {
-                if (data) {
-                  if (rewardPoints == 0) {
-                    // console.log('ĐIỂM THƯỞNG', rewardPoints)
-                    data.diemThuong = data.diemThuong + Math.round((showtime.giaVe * GheDaChon.length) / 1000 * 0.05)
-                    data.save()
-                      .then()
-                      .catch()
-                  } else {
-                    //  console.log('ĐIỂM THƯỞNG', rewardPoints)
-                    data.diemThuong = data.diemThuong - rewardPoints + Math.round((showtime.giaVe * GheDaChon.length - rewardPoints * 1000) / 1000 * 0.05)
-                    data.save()
-                      .then()
-                      .catch()
-                  }
-                }
-              })
-              .catch()
+            /*      User.findOne({ _id: req.user })
+                    .then((data) => {
+                      if (data) {
+                        if (rewardPoints == 0) {
+                          // console.log('ĐIỂM THƯỞNG', rewardPoints)
+                          data.diemThuong = data.diemThuong + Math.round((showtime.giaVe * GheDaChon.length) / 1000 * 0.05)
+                          data.save()
+                            .then()
+                            .catch()
+                        } else {
+                          //  console.log('ĐIỂM THƯỞNG', rewardPoints)
+                          //data.diemThuong = data.diemThuong - rewardPoints + Math.round((showtime.giaVe * GheDaChon.length - rewardPoints * 1000) / 1000 * 0.05)
+                          data.save()
+                            .then()
+                            .catch()
+                        }
+                      }
+                    })
+                    .catch()  */
           }
-          // res.status(200).json({ tongTien: showtime.giaVe * GheDaChon.length })
         } else res.status(500).json({ error: "Chưa thể tiến hành đặt vé" });
       })
-      .catch((err) => res.status(500).json({ error: "Đặt vé thất bại" }));
+      .catch((err) => {
+        console.log(err)
+        res.status(500).json({ error: "Đặt vé thất bại" });
+      });
   }
 
   goodSales(res) {

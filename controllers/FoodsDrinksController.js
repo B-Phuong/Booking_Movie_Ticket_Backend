@@ -1,5 +1,7 @@
 require('dotenv').config();
 const FoodsAndDrinks = require('../models/FoodsAndDrink')
+const TicketBooking = require('../models/TicketBooking')
+const User = require('../models/User')
 const { removeVietnameseTones } = require("../helper/formatString");
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
@@ -89,5 +91,38 @@ class FoodsDrinksController {
         }
     }
 
+    async foodDrinkBooking(req, res) {
+        let ticketBooking = await TicketBooking.findOne({ _id: req.body.id })
+        let foodList = req.body?.danhSachAnUong
+        let total = ticketBooking.tienThanhToan;
+        ticketBooking.danhSachAnUong = foodList
+        foodList?.map((item) => {
+            total += item.soLuong * item.giaTien
+        })
+        ticketBooking.tienThanhToan = total
+        ticketBooking.save()
+            .then(async () => {
+                User.findOne({ _id: req.user })
+                    .then((data) => {
+                        if (data) {
+                            console.log('>>user', data)
+                            if (data.diemThuong == 0) {
+                                // console.log('ĐIỂM THƯỞNG', rewardPoints)
+                                data.diemThuong += + Math.round((ticketBooking.tienThanhToan) / 1000 * 0.05)
+                                data.save()
+                                    .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
+                                    .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                            } else {
+                                // console.log('ĐIỂM THƯỞNG', rewardPoints)
+                                data.diemThuong += + Math.round((ticketBooking.tienThanhToan - data.diemThuong * 1000) / 1000 * 0.05)
+                                data.save()
+                                    .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
+                                    .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                            }
+                        }
+                    })
+                    .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+            })
+    }
 }
 module.exports = new FoodsDrinksController;

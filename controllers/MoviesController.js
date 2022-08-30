@@ -177,17 +177,18 @@ class MoviesController {
   }
   //[POST] /movie
   add(req, res) {
-    const ngayKhoiChieu = new Date(req.body.ngayKhoiChieu);
     const movie = new Movie({
       tenPhim: req.body.tenPhim,
       hinhAnh: "",
       moTa: req.body.moTa,
       trailer: req.body.trailer,
-      ngayKhoiChieu: ngayKhoiChieu,
+      ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
       thoiLuong: Number(req.body.thoiLuong),
     });
-    movie.ngayKhoiChieu = ngayKhoiChieu; //.toISOString()
+    const ngayKhoiChieu = new Date(req.body.ngayKhoiChieu);
+    console.log(">>>>ngayKhoiChieu", ngayKhoiChieu)
     movie.ngayKetThuc = ngayKhoiChieu.setMonth(ngayKhoiChieu.getMonth() + 2)
+    console.log(">>>>ngayKetThuc", movie.ngayKetThuc)
     Movie.find({ tenPhim: movie.tenPhim.toUpperCase() })
       .then(async (data) => {
         if (data.length > 0)
@@ -215,7 +216,6 @@ class MoviesController {
           try {
             const fileStr = req.file.path;
             const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
-            console.log(uploadResponse)
             movie.hinhAnh = uploadResponse.url;
             movie.maHinhAnh = uploadResponse.public_id;
             await movie.save()
