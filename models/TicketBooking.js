@@ -14,9 +14,9 @@ const Ticketbooking = new Schema({
   ],
   danhSachAnUong: [
     {
-      maAnUong: { type: String, trim: true, ref: FoodsAndDrink }, //unique: true,
+      maAnUong: { type: String, trim: true }, //unique: true,
       soLuong: { type: Number, required: true },
-      thanhTien: { type: Number }
+      giaTien: { type: Number }
     }
   ],
   tentaiKhoan: { type: String, ref: User },
