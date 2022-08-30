@@ -59,7 +59,6 @@ exports.validationChangePassword = [
     check('nhapLaiMatKhau')
         .notEmpty()
         .withMessage('Vui lòng nhập gmail'),
-
 ]
 
 exports.validationSignIn = [
@@ -69,8 +68,6 @@ exports.validationSignIn = [
     check('matKhau')
         .notEmpty()
         .withMessage('Bạn chưa nhập mật khẩu'),
-
-
 ]
 exports.validationSignUp = [
     check('taiKhoan')
@@ -95,8 +92,25 @@ exports.validationSignUp = [
         .isMobilePhone()
         .withMessage('Định dạng số điện thoại chưa phù hợp'),
 ]
-exports.isRequestValidated = (req, res, next) => {
 
+exports.validationFoodsAndDrinks = [
+    check('tenCombo')
+        .notEmpty()
+        .withMessage('Vui lòng nhập tên của combo'),
+    check('moTa')
+        .notEmpty()
+        .withMessage('Vui lòng ghi mô tả'),
+    check('giaGoc')
+        .notEmpty()
+        .withMessage('Vui lòng nhập giá cho combo'),
+    check('giaGoc')
+        .isFloat({ min: 0 })
+        .withMessage('Giá tiền không được bé hơn 0'),
+    check('giamGia')
+        .isFloat({ min: 0 })
+        .withMessage('Phần tiềm giảm không được bé hơn 0'),
+]
+exports.isRequestValidated = (req, res, next) => {
     const errors = validationResult(req)
     if (errors.array().length > 0) {
         var err = []
