@@ -16,7 +16,8 @@ router.get('/:bidanh/showtime/getchair', Auth.checkPermission, Auth.checkUser, s
 router.post('/showtime/food', Auth.checkPermission, Auth.checkUser, FoodsDrinksController.foodDrinkBooking);
 router.post('/changeTicketBooking/:IDTicket', Auth.checkPermission, Auth.checkUser, userController.changeTicketBooking);
 router.get('/history/:IDticket', Auth.checkPermission, Auth.checkUser, userController.getHistoryTicketById);
-router.get('/food_drink', Auth.checkPermission, FoodsDrinksController.getAll);
+router.get('/food_drink/:id', FoodsDrinksController.getDetail);
+router.get('/food_drink', FoodsDrinksController.getAll);
 router.get('/history', Auth.checkPermission, Auth.checkUser, userController.history); ///user/:id/editPassword
 router.put('/editPassword', Auth.checkPermission, Auth.checkUser, validationChangePassword, isRequestValidated, userController.editPassword);
 router.get('/cancelBooking/:IDTicket', Auth.checkPermission, Auth.checkUser, userController.cancelBooking);
