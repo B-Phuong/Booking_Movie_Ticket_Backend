@@ -95,39 +95,5 @@ class FoodsDrinksController {
         let detail = await FoodsAndDrinks.findOne({ _id: req.params.id, daXoa: false })
         return res.status(200).json({ data: detail })
     }
-
-    async foodDrinkBooking(req, res) {
-        let ticketBooking = await TicketBooking.findOne({ _id: req.body.id })
-        let foodList = req.body?.danhSachAnUong
-        let total = ticketBooking.tienThanhToan;
-        let usedPoint = req.body.diemSuDung;
-        ticketBooking.danhSachAnUong = foodList
-        foodList?.map((item) => {
-            total += item.soLuong * item.giaTien
-        })
-        ticketBooking.tienThanhToan = total
-        ticketBooking.save()
-            .then(async () => {
-                User.findOne({ _id: req.user })
-                    .then((data) => {
-                        if (data) {
-                            if (usedPoint == 0) {
-                                // console.log('ĐIỂM THƯỞNG', rewardPoints)
-                                data.diemThuong += Math.round((ticketBooking.tienThanhToan) / 1000 * 0.05)
-                                data.save()
-                                    .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
-                                    .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
-                            } else {
-                                // console.log('ĐIỂM THƯỞNG', rewardPoints)
-                                data.diemThuong += Math.round((ticketBooking.tienThanhToan - usedPoint * 1000) / 1000 * 0.05)
-                                data.save()
-                                    .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
-                                    .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
-                            }
-                        }
-                    })
-                    .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
-            })
-    }
 }
 module.exports = new FoodsDrinksController;
