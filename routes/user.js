@@ -11,9 +11,8 @@ const upload = require("../services/multer");
 // router.post('/signin', userController.signIn);
 // router.post('/signUp', userController.signUp);
 
-router.post('/:bidanh/showtime/:IDshowtime/seat', Auth.checkPermission, Auth.checkUser, showtimeController.ticketBooking);
+router.post('/:bidanh/showtime/:IDshowtime', Auth.checkPermission, Auth.checkUser, showtimeController.ticketBooking);
 router.get('/:bidanh/showtime/getchair', Auth.checkPermission, Auth.checkUser, showtimeController.getAllChair);
-router.post('/showtime/food', Auth.checkPermission, Auth.checkUser, FoodsDrinksController.foodDrinkBooking);
 router.post('/changeTicketBooking/:IDTicket', Auth.checkPermission, Auth.checkUser, userController.changeTicketBooking);
 router.get('/history/:IDticket', Auth.checkPermission, Auth.checkUser, userController.getHistoryTicketById);
 router.get('/food_drink/:id', FoodsDrinksController.getDetail);
