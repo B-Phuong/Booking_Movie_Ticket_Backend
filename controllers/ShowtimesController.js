@@ -145,27 +145,44 @@ class ShowTimeController {
   //[POST] /user/:bidanh/showtime/:IDshowtime
   async ticketBooking(req, res) {
     const IDShowTime = req.params.IDshowtime;
+    let usedPoint = req.body.diemSuDung;
+    let foodList = req.body?.danhSachAnUong
     const ticket = req.body.danhSachGhe;
-    seatList = [];
+    var seatList = [];
     var seatPicked = [];
-    const showtime = await ShowTime.findById(IDShowTime);
-    if (showtime)
+    let showtime = await ShowTime.findById(IDShowTime);
+    let exit, seatInvalable
+    if (showtime) {
       ticket.forEach((dsGhe) => {
-        seatList.push({ maGhe: dsGhe, giaGhe: showtime.giaVe });
-        seatPicked.push(dsGhe);
+        if (showtime.gheDaChon.indexOf(dsGhe) != -1) {
+          exit = true;
+          seatInvalable = dsGhe
+          return;// res.status(400).json({ error: `Ghế ${dsGhe} đã có người đặt, vui lòng hãy chọn ghế khác` })
+        }
+        else {
+          console.log(">> Kiểm thử hàm else")
+          seatList.push({ maGhe: dsGhe, giaGhe: showtime.giaVe });
+          seatPicked.push(dsGhe);
+        }
       });
+    }
     else (res.status(400).json({ error: 'Vui lòng kiểm tra lại lịch chiếu' }))
+    if (exit) {
+      console.log(`Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác`)
+      return res.status(400).json({ error: `Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác` })
+    }
+
     const movie = await Movie.findOne({ biDanh: req.params.bidanh })
     let total;
-    // if (rewardPoints == 0) {
-    //   tienThanhToan = showtime.giaVe * GheDaChon.length;
-    // }
-    //else 
-    total = showtime.giaVe * seatPicked.length;// - rewardPoints * 1000
+    total = showtime.giaVe * seatPicked.length;
+    foodList?.map((item) => {
+      total += item.soLuong * item.giaTien
+    })
     //console.log('movie', movie)
     const booking = new TicketBooking({
       maLichChieu: IDShowTime,
       danhSachVe: seatList,
+      danhSachAnUong: foodList,
       tentaiKhoan: req.user,
       phim: movie._id,
       tienThanhToan: total,
@@ -182,28 +199,33 @@ class ShowTimeController {
             movie.soLuongBan = movie.soLuongBan + numberOfSeat;
             movie.save()
               .then(() => {
-                res.status(201).json({ tongTien: total })
-              })
-              .catch()
-            /*      User.findOne({ _id: req.user })
-                    .then((data) => {
-                      if (data) {
-                        if (rewardPoints == 0) {
-                          // console.log('ĐIỂM THƯỞNG', rewardPoints)
-                          data.diemThuong = data.diemThuong + Math.round((showtime.giaVe * GheDaChon.length) / 1000 * 0.05)
-                          data.save()
-                            .then()
-                            .catch()
-                        } else {
-                          //  console.log('ĐIỂM THƯỞNG', rewardPoints)
-                          //data.diemThuong = data.diemThuong - rewardPoints + Math.round((showtime.giaVe * GheDaChon.length - rewardPoints * 1000) / 1000 * 0.05)
-                          data.save()
-                            .then()
-                            .catch()
-                        }
+                User.findOne({ _id: req.user })
+                  .then((data) => {
+                    if (data) {
+                      if (usedPoint == 0) {
+                        console.log('ĐIỂM THƯỞNG', usedPoint)
+                        data.diemThuong += Math.round((showtime.giaVe * numberOfSeat) / 1000 * 0.05)
+                        console.log('data.diemThuong', data.diemThuong)
+                        data.save()
+                          .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
+                          .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                      } else {
+                        console.log('ĐIỂM THƯỞNG', usedPoint)
+                        console.log('test', (showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
+                        data.diemThuong = data.diemThuong - usedPoint + Math.round((showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
+                        console.log('data.diemThuong', data.diemThuong)
+
+                        data.save()
+                          .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
+                          .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
                       }
-                    })
-                    .catch()  */
+                    }
+                  })
+                  .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                // res.status(201).json({ tongTien: total })
+              })
+              .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+
           }
         } else res.status(500).json({ error: "Chưa thể tiến hành đặt vé" });
       })

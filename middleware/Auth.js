@@ -16,25 +16,20 @@ class Auth {
                 next()
             }
             else {
-                return res.status(500).json({ error: 'Vui lòng thực hiện đăng nhập' })
-                //     const err = new Error('Vui lòng thực hiện đăng nhập');
-                //     err.statusCode = 404
-                //     return next(err)
+                return res.status(401).json({ error: 'Vui lòng thực hiện đăng nhập' })
             }
 
-        } catch (err) { res.status(500).json({ error: 'Vui lòng thực hiện đăng nhập' }) };
-
-
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Lỗi hệ thống' });
+        }
     }
     checkAdmin(req, res, next) {
         if (req.data.maLoaiNguoiDung == '0')
 
             next();
         else {
-            res.status(404).json({ error: 'Không có quyền truy cập chức năng này' })
-            // const err = new Error('Không có quyền truy cập chức năng này');
-            // err.statusCode = 404
-            // return next(err)
+            res.status(403).json({ error: 'Không có quyền truy cập chức năng này' })
         }
     }
     checkUser(req, res, next) {
@@ -43,10 +38,7 @@ class Auth {
             next();
         }
         else {
-            res.status(404).json({ error: 'Không có quyền truy cập chức năng này' })
-            // const err = new Error('Không có quyền truy cập chức năng này');
-            // err.statusCode = 404
-            // return next(err)
+            res.status(403).json({ error: 'Không có quyền truy cập chức năng này' })
         }
     }
 
