@@ -8,12 +8,12 @@ require('dotenv').config()
 // async..await is not allowed in global scope, must use a wrapper
 class emailService {
     async sendEmail(req, res) {
-        const name = req.body.name
-        const cinemaClusterName = req.body.cinemaClusterName
-        const movieName = req.body.movieName
+        const name = req.body.taiKhoan
+        const cinemaClusterName = req.body.tenCumRap
+        const movieName = req.body.tenPhim
         const QRCode = req.body.QRCode
-        const showtimeDate = req.body.showtimeDate
-        const showtimeTime = req.body.showtimeTime
+        const showtimeDate = req.body.ngayChieu
+        const showtimeTime = req.body.gioChieu
         //  const QR = req.params.QRCode
 
         // create reusable transporter object using the default SMTP transport
@@ -29,9 +29,6 @@ class emailService {
         });
         transporter.use('compile', inlineBase64({ cidPrefix: 'somePrefix_' }));
         let img = `<img src="` + QRCode + `"/>`
-        // console.log('hình', img)
-        // 
-        // const url = nodemailer.getTestMessageUrl(QRCode)
         // send mail with defined transport object
         let info = await transporter.sendMail({
             from: 'CGV', // sender address
@@ -49,13 +46,12 @@ class emailService {
         });
 
         if (info)
-            res.status(200).json('Đã gửi email')
-        else res.status(400).json('Gửi email thất bại')
+            res.status(200).json({ message: 'Đã gửi email' })
+        else res.status(400).json({ error: 'Gửi email thất bại' })
 
     }
 
     async sendReminderMail(req, res) {
-
         let ticketToday = []
         // const dateNow = new Date()
         await TicketBooking.find({})
@@ -94,15 +90,10 @@ class emailService {
             }
             return "";
         };
-        // const dateReminder = new Date()
-        // dateReminder.setHours(12)
-        // dateReminder.setMinutes(53)
-        // console.log('thời gian hiện tại', dateReminder)
         cron.schedule("0 8 * * *", () => {
-
             //
             ticketToday.forEach(async (ticket) => {
-                console.log('ticket', ticket)
+                //console.log('ticket', ticket)
                 let transporter = nodemailer.createTransport({
                     host: 'smtp.gmail.com',
                     port: 587,
@@ -113,11 +104,8 @@ class emailService {
                     },
                 });
                 transporter.use('compile', inlineBase64({ cidPrefix: 'somePrefix_' }));
-                // console.log('hình', img)
-                // 
-                // const url = nodemailer.getTestMessageUrl(QRCode)
-                // send mail with defined transport object
 
+                // send mail with defined transport object
                 let info = await transporter.sendMail({
                     from: 'CGV', // sender address
                     to: process.env.SEND_TO, // list of receivers
@@ -131,25 +119,20 @@ class emailService {
 
                 });
                 if (info)
-                    res.status(200).json('Đã gửi email')
-                else res.status(400).json('Gửi email thất bại')
-
-
+                    res.status(200).json({ message: 'Đã gửi email' })
+                else res.status(400).json({ error: 'Gửi email thất bại' })
             })
             //
         })
-
-
     }
 
     async sendchangeTicketMail(req, res) {
-
-        const name = req.body.name
-        const cinemaClusterName = req.body.cinemaClusterName
-        const movieName = req.body.movieName
+        const name = req.body.taiKhoan
+        const cinemaClusterName = req.body.tenCumRap
+        const movieName = req.body.tenPhim
         const QRCode = req.body.QRCode
-        const showtimeDate = req.body.showtimeDate
-        const showtimeTime = req.body.showtimeTime
+        const showtimeDate = req.body.ngayChieu
+        const showtimeTime = req.body.gioChieu
         //  const QR = req.params.QRCode
 
         // create reusable transporter object using the default SMTP transport
@@ -185,8 +168,8 @@ class emailService {
         });
 
         if (info)
-            res.status(200).json('Đã gửi email')
-        else res.status(400).json('Gửi email thất bại')
+            res.status(200).json({ message: 'Đã gửi email' })
+        else res.status(400).json({ error: 'Gửi email thất bại' })
 
 
     }
