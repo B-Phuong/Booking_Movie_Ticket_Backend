@@ -33,6 +33,7 @@ class Auth {
         }
     }
     checkUser(req, res, next) {
+        console.log('Thời gian nhận request', new Date())
         if (req.data.maLoaiNguoiDung == '1') {
             req.user = req.data._id
             next();

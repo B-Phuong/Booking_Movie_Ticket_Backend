@@ -1,14 +1,14 @@
 
-const userRouter = require('./user');
-const movieRouter = require('./movie');
-const accountRouter = require('./account');
+const usersRouter = require('./users');
+const moviesRouter = require('./movies');
+const accountsRouter = require('./accounts');
 const adminRouter = require('./admin');
 
 function route(app) {
-    app.use('/movie', movieRouter);
+    app.use('/movies', moviesRouter);
     app.use('/admin', adminRouter);
-    app.use('/user', userRouter);
-    app.use('/account', accountRouter);
+    app.use('/users', usersRouter);
+    app.use('/accounts', accountsRouter);
     // app.all('*', (req, res, next) => {
     //     const error = new Error("Xin hãy kiểm tra lại đường dẫn")
     //     res.status(404).json({
