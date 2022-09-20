@@ -168,7 +168,7 @@ class ShowTimeController {
     }
     else (res.status(400).json({ error: 'Vui lòng kiểm tra lại lịch chiếu' }))
     if (exit) {
-      console.log(`Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác`)
+      console.log(`Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác`, req.body.soThuTu)
       return res.status(400).json({ error: `Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác` })
     }
 
