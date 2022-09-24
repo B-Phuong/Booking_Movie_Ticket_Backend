@@ -8,48 +8,40 @@ class Auth {
     checkPermission(req, res, next) { //dùng try catch để bắt lỗi khi chưa đăng nhập/ chưa tìm thấy token (do checkPermission là xử lý đồng bộ)
         try {
             if (req.headers.authorization) {
-                // console.log('1')
+                console.log('---------------------------------------------------------------')
                 const token = req.headers.authorization.split(" ")[1];
                 const user = jwt.verify(token, 'user'); //_id, maLoaiNguoiDung
+                console.log(`>>request ${req.body.soThuTu} nhận lúc`, new Date())
                 console.log('người dùng khi đăng nhập', user)
                 req.data = user;
                 next()
             }
             else {
-                return res.status(500).json({ error: 'Vui lòng thực hiện đăng nhập' })
-                //     const err = new Error('Vui lòng thực hiện đăng nhập');
-                //     err.statusCode = 404
-                //     return next(err)
+                return res.status(401).json({ error: 'Vui lòng thực hiện đăng nhập' })
             }
 
-        } catch (err) { res.status(500).json({ error: 'Vui lòng thực hiện đăng nhập' }) };
-
-
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Lỗi hệ thống' });
+        }
     }
     checkAdmin(req, res, next) {
         if (req.data.maLoaiNguoiDung == '0')
 
             next();
         else {
-            res.status(404).json({ error: 'Không có quyền truy cập chức năng này' })
-            // const err = new Error('Không có quyền truy cập chức năng này');
-            // err.statusCode = 404
-            // return next(err)
+            res.status(403).json({ error: 'Không có quyền truy cập chức năng này' })
         }
     }
     checkUser(req, res, next) {
+        console.log('Thời gian nhận request', new Date())
         if (req.data.maLoaiNguoiDung == '1') {
             req.user = req.data._id
             next();
         }
         else {
-            res.status(404).json({ error: 'Không có quyền truy cập chức năng này' })
-            // const err = new Error('Không có quyền truy cập chức năng này');
-            // err.statusCode = 404
-            // return next(err)
+            res.status(403).json({ error: 'Không có quyền truy cập chức năng này' })
         }
     }
-
-
 }
 module.exports = new Auth;
