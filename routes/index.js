@@ -4,7 +4,6 @@ const movieRouter = require('./movie');
 const accountRouter = require('./account');
 const adminRouter = require('./admin');
 
-
 function route(app) {
     app.use('/movies', movieRouter);
     app.use('/admins', adminRouter);

@@ -1,32 +1,30 @@
 const express = require("express");
 const router = express.Router();
-const movieController = require("../controllers/MovieController");
-const showtimeController = require("../controllers/ShowtimeController");
-const accountController = require("../controllers/AccountController");
-const userController = require("../controllers/userController");
+const movieController = require("../controllers/MoviesController");
+const showtimeController = require("../controllers/ShowtimesController");
+const accountController = require("../controllers/AccountsController");
+const userController = require("../controllers/UsersController");
+const FoodsDrinksController = require("../controllers/FoodsDrinksController")
 const {
   validationMovie,
   validationUser,
   isRequestValidated,
   validationShowTime,
+  validationFoodsAndDrinks
 } = require("../middleware/Values");
 const Auth = require("../middleware/Auth");
-const multer = require("multer");
 //const shortid = require("shortid");
-const path = require("path");
-const ShowtimeController = require("../controllers/ShowtimeController");
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/uploads");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
+const ShowtimesController = require("../controllers/ShowtimesController");
+const upload = require("../services/multer");
+require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({ storage: storage }).single('file');
-//Movie
 
+//Movie
 
 router.post(
   "/movie/:bidanh/showtime",
@@ -50,11 +48,11 @@ router.get(
 );
 router.get(
   "/movie/movietheater",
-  /*Auth.checkPermission, Auth.checkAdmin,*/ ShowtimeController.getMovieTheater
+  /*Auth.checkPermission, Auth.checkAdmin,*/ ShowtimesController.getMovieTheater
 );
 router.get(
   "/movie/room",
-  /*Auth.checkPermission, Auth.checkAdmin,*/ ShowtimeController.getRoom
+  /*Auth.checkPermission, Auth.checkAdmin,*/ ShowtimesController.getRoom
 );
 router.delete(
   "/movie/:bidanh",
@@ -66,14 +64,16 @@ router.put(
   "/movie/:bidanh",
   Auth.checkPermission,
   Auth.checkAdmin,
-  validationMovie,
-  isRequestValidated,
-  movieController.edit
+  upload.single("hinhAnh"),
+  // validationMovie,
+  // isRequestValidated,
+  movieController.edit,
 );
 router.post(
   "/movie",
   Auth.checkPermission,
   Auth.checkAdmin,
+  upload.single("hinhAnh"),
   validationMovie,
   isRequestValidated,
   movieController.add
@@ -85,6 +85,21 @@ router.get(
   Auth.checkAdmin,
   userController.find
 );
+// router.delete(
+//   "/delete",
+//   Auth.checkPermission,
+//   // Auth.checkAdmin,
+//   async (req, res) => {
+//     console.log(req.body.public_id)
+//     try {
+//       // Delete image from cloudinary
+//       await cloudinary.uploader.destroy(req.body.public_id, { type: "upload" });
+//       return res.status(200).json({ message: 'Deleted' });
+//     } catch (err) {
+//       return res.status(500).json({ err: 'Something went wrong' });
+//     }
+//   }
+// );
 router.get(
   "/user",
   Auth.checkPermission,
@@ -92,20 +107,19 @@ router.get(
   userController.getAllUser
 );
 
-router.post(
-  "/upload",
-  Auth.checkPermission,
+router.post("/food_drink", Auth.checkPermission,
   Auth.checkAdmin,
-  (req, res) => {
-    upload(req, res, (err) => {
-      if (err) {
-        return res.status(500).json(err)
-      }
-
-      return res.status(200).send(req.file)
-    })
-  }
+  upload.single("hinhAnh"),
+  validationFoodsAndDrinks,
+  isRequestValidated,
+  FoodsDrinksController.add
 );
+router.put("/food_drink/:bidanh", Auth.checkPermission,
+  Auth.checkAdmin,
+  upload.single("hinhAnh"),
+  FoodsDrinksController.update
+);
+
 router.get(
   "/goodSales",
   Auth.checkPermission,
