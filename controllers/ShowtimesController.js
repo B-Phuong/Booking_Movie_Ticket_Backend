@@ -151,16 +151,15 @@ class ShowTimeController {
     var seatList = [];
     var seatPicked = [];
     let showtime = await ShowTime.findById(IDShowTime);
-    let exit, seatInvalable
+    let exit = false, SeatUnavailable
     if (showtime) {
       ticket.forEach((dsGhe) => {
         if (showtime.gheDaChon.indexOf(dsGhe) != -1) {
           exit = true;
-          seatInvalable = dsGhe
+          SeatUnavailable = dsGhe
           return;// res.status(400).json({ error: `Ghế ${dsGhe} đã có người đặt, vui lòng hãy chọn ghế khác` })
         }
         else {
-          console.log(">> Kiểm thử hàm else")
           seatList.push({ maGhe: dsGhe, giaGhe: showtime.giaVe });
           seatPicked.push(dsGhe);
         }
@@ -168,17 +167,16 @@ class ShowTimeController {
     }
     else (res.status(400).json({ error: 'Vui lòng kiểm tra lại lịch chiếu' }))
     if (exit) {
-      console.log(`Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác`, req.body.soThuTu)
-      return res.status(400).json({ error: `Ghế ${seatInvalable} đã có người đặt, vui lòng hãy chọn ghế khác` })
+      // console.log(`>>Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác`, req.body.soThuTu)
+      // console.log(`>>request ${req.body.soThuTu} kết thúc lúc`, new Date())
+      return res.status(400).json({ error: `Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác` })
     }
-
     const movie = await Movie.findOne({ biDanh: req.params.bidanh })
     let total;
     total = showtime.giaVe * seatPicked.length;
     foodList?.map((item) => {
       total += item.soLuong * item.giaTien
     })
-    //console.log('movie', movie)
     const booking = new TicketBooking({
       maLichChieu: IDShowTime,
       danhSachVe: seatList,
@@ -190,7 +188,7 @@ class ShowTimeController {
     booking
       .save()
       .then(async () => {
-        //res.status(200).json('Đặt vé thành công')
+        // console.log(">>BOOKING inf", booking)
         showtime.gheDaChon = [...showtime.gheDaChon, ...seatPicked]
         const numberOfSeat = seatPicked.length
         const ticketBooking = await showtime.save();
@@ -203,18 +201,16 @@ class ShowTimeController {
                   .then((data) => {
                     if (data) {
                       if (usedPoint == 0) {
-                        console.log('ĐIỂM THƯỞNG', usedPoint)
                         data.diemThuong += Math.round((showtime.giaVe * numberOfSeat) / 1000 * 0.05)
-                        console.log('data.diemThuong', data.diemThuong)
+                        // console.log(`>>request ${req.body.soThuTu} THÀNH CÔNG, kết thúc lúc`, new Date())
                         data.save()
                           .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
                           .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
                       } else {
-                        console.log('ĐIỂM THƯỞNG', usedPoint)
-                        console.log('test', (showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
+                        // console.log('test', (showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
                         data.diemThuong = data.diemThuong - usedPoint + Math.round((showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
-                        console.log('data.diemThuong', data.diemThuong)
-
+                        // console.log('data.diemThuong', data.diemThuong)
+                        // console.log(`>>request ${req.body.soThuTu} THÀNH CÔNG, kết thúc lúc`, new Date())
                         data.save()
                           .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
                           .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
@@ -222,16 +218,15 @@ class ShowTimeController {
                     }
                   })
                   .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
-                // res.status(201).json({ tongTien: total })
               })
               .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
-
           }
         } else res.status(500).json({ error: "Chưa thể tiến hành đặt vé" });
       })
-      .catch((err) => {
-        console.log(err)
-        res.status(500).json({ error: "Đặt vé thất bại" });
+      .catch(async (err) => {
+        await TicketBooking.deleteOne({ _id: booking._id })
+        // console.log(err)
+        return res.status(500).json({ error: "Đặt vé thất bại" });
       });
   }
 

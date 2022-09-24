@@ -5,10 +5,10 @@ const accountsRouter = require('./accounts');
 const adminRouter = require('./admin');
 
 function route(app) {
-    app.use('/movies', movieRouter);
+    app.use('/movies', moviesRouter);
     app.use('/admins', adminRouter);
-    app.use('/users', userRouter);
-    app.use('/accounts', accountRouter);
+    app.use('/users', usersRouter);
+    app.use('/accounts', accountsRouter);
 }
 
 module.exports = route;
