@@ -47,10 +47,6 @@ router.get(
   movieController.top10Movies
 );
 router.get(
-  "/movie/movietheater",
-  /*Auth.checkPermission, Auth.checkAdmin,*/ ShowtimesController.getMovieTheater
-);
-router.get(
   "/movie/room",
   /*Auth.checkPermission, Auth.checkAdmin,*/ ShowtimesController.getRoom
 );
