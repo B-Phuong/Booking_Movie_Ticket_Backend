@@ -126,16 +126,24 @@ class MoviesController {
       ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
       thoiLuong: Number(req.body.thoiLuong),
     };
-    try {
-      const fileStr = req.file.path;
-      const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
-      console.log(uploadResponse)
-      movieUpdate.hinhAnh = uploadResponse.url;
-      movieUpdate.maHinhAnh = uploadResponse.public_id;
-      cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
-    } catch (err) {
-      res.status(500).json({ error: 'Cập nhật thất bại' });
+    console.log(">> req", req.body)
+    console.log('>> req.body.ngayKhoiChieu', req.body.ngayKhoiChieu)
+    console.log('>> ngayKhoiChieu', movieUpdate.ngayKhoiChieu)
+    if (req.file != null) {
+      try {
+        const fileStr = req.file.path;
+        console.log('>> Into try')
+        const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
+        //console.log(uploadResponse)
+        movieUpdate.hinhAnh = uploadResponse.url;
+        movieUpdate.maHinhAnh = uploadResponse.public_id;
+        cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
+        console.log(">> done upload", movieUpdate)
+      } catch (err) {
+        res.status(500).json({ error: 'Cập nhật thất bại' });
+      }
     }
+
     Movie.findOneAndUpdate({ biDanh: req.params.bidanh }, movieUpdate)
       .then((data) => {
         if (data) {

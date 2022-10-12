@@ -70,8 +70,8 @@ router.post(
   Auth.checkPermission,
   Auth.checkAdmin,
   upload.single("hinhAnh"),
-  validationMovie,
-  isRequestValidated,
+  // validationMovie,
+  // isRequestValidated,
   movieController.add
 );
 //User
