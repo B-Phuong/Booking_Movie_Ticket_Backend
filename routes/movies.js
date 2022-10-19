@@ -10,8 +10,9 @@ const path = require("path");
 //router.get('/:bidanh/showtime', showtimeController.getShowtime);
 router.get('/cluster/:maCumRap', movieController.showMovieByCluster);
 router.get('/coming', movieController.showMovieComing); //
-router.get('/:biDanh', movieController.showDetail); //
 router.get("/movietheater", showtimeController.getMovieTheater);
+router.get('/:biDanh', movieController.showDetail); //
+
 router.get('/', movieController.show);
 
 module.exports = router;

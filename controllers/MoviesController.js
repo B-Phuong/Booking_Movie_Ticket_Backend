@@ -129,15 +129,18 @@ class MoviesController {
     console.log(">> req", req.body)
     console.log('>> req.body.ngayKhoiChieu', req.body.ngayKhoiChieu)
     console.log('>> ngayKhoiChieu', movieUpdate.ngayKhoiChieu)
-    if (req.file != null) {
+    if (Object.keys(req.files).length > 0) {
       try {
-        const fileStr = req.file.path;
-        console.log('>> Into try')
-        const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
-        //console.log(uploadResponse)
-        movieUpdate.hinhAnh = uploadResponse.url;
-        movieUpdate.maHinhAnh = uploadResponse.public_id;
+        const image = req.files.hinhAnh[0].path;
+        const banner = req.files.anhBia[0].path;
+        const uploadImageResponse = await cloudinary.uploader.upload(image, { folder: "BookingTicket", use_filename: true });
+        movieUpdate.hinhAnh = uploadImageResponse.url;
+        movieUpdate.maHinhAnh = uploadImageResponse.public_id;
+        const uploadBannerResponse = await cloudinary.uploader.upload(banner, { folder: "BookingTicket", use_filename: true });
+        movieUpdate.anhBia = uploadBannerResponse.url;
+        movieUpdate.maAnhBia = uploadBannerResponse.public_id;
         cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
+        cloudinary.uploader.destroy(movie.maAnhBia, { type: "upload" });
         console.log(">> done upload", movieUpdate)
       } catch (err) {
         res.status(500).json({ error: 'Cập nhật thất bại' });
@@ -192,6 +195,9 @@ class MoviesController {
       trailer: req.body.trailer,
       ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
       thoiLuong: Number(req.body.thoiLuong),
+      anhBia: "",
+      theLoai: req.body.theLoai.split(","),
+      quocGia: req.body.quocGia,
     });
     const ngayKhoiChieu = new Date(req.body.ngayKhoiChieu);
     console.log(">>>>ngayKhoiChieu", ngayKhoiChieu)
@@ -221,11 +227,16 @@ class MoviesController {
           }
           movie.biDanh = slug;
           // Upload image to cloudinary
+          console.log(">>", req.files)
           try {
-            const fileStr = req.file.path;
-            const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
-            movie.hinhAnh = uploadResponse.url;
-            movie.maHinhAnh = uploadResponse.public_id;
+            const image = req.files.hinhAnh[0].path;
+            const banner = req.files.anhBia[0].path;
+            const uploadImageResponse = await cloudinary.uploader.upload(image, { folder: "BookingTicket", use_filename: true });
+            movie.hinhAnh = uploadImageResponse.url;
+            movie.maHinhAnh = uploadImageResponse.public_id;
+            const uploadBannerResponse = await cloudinary.uploader.upload(banner, { folder: "BookingTicket", use_filename: true });
+            movie.anhBia = uploadBannerResponse.url;
+            movie.maAnhBia = uploadBannerResponse.public_id;
             await movie.save()
             res.status(201).json({ message: 'Thêm phim thành công', data: movie })
           } catch (err) {

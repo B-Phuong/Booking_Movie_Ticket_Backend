@@ -16,6 +16,15 @@ const Movie = new Schema({
   thoiLuong: { type: Number },
   danhGia: { type: Number, default: 0 },
   soLuongBan: { type: Number, default: 0 },
-  daXoa: { type: Boolean, default: false }
+  daXoa: { type: Boolean, default: false },
+  theLoai: { type: Array, default: 'Chưa xác định' },
+  quocGia: { type: String, default: 'Chưa xác định' },
+  anhBia: { type: String, required: true },
+  maAnhBia: { type: String },
 }, { timestamps: true });
 module.exports = mongoose.model('Movie', Movie);
+
+// theLoai: Kinh dị, Hài hước, Lãng mạn, Hành động, Hoạt hình, Viễn tưởng
+// quocGia: Mỹ, Việt Nam, Anh, Pháp, Nhật, Hàn, Thái Lan, khác
+// anhBia: url
+// trailer: url video

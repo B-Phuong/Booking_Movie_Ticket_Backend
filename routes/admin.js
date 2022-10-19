@@ -60,7 +60,16 @@ router.put(
   "/movie/:bidanh",
   Auth.checkPermission,
   Auth.checkAdmin,
-  upload.single("hinhAnh"),
+  upload.fields(
+    [
+      {
+        name: 'hinhAnh',
+        maxCount: 1
+      },
+      {
+        name: 'anhBia', maxCount: 1
+      }
+    ]),
   // validationMovie,
   // isRequestValidated,
   movieController.edit,
@@ -69,7 +78,16 @@ router.post(
   "/movie",
   Auth.checkPermission,
   Auth.checkAdmin,
-  upload.single("hinhAnh"),
+  upload.fields(
+    [
+      {
+        name: 'hinhAnh',
+        maxCount: 1
+      },
+      {
+        name: 'anhBia', maxCount: 1
+      }
+    ]),
   // validationMovie,
   // isRequestValidated,
   movieController.add
