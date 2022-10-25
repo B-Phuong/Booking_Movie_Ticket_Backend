@@ -22,14 +22,14 @@ class MoviesController {
         populate: { path: "tenRap" },
       })
       .then((data) => {
-        //console.log(data)
+        console.log(data)
         if (data.length != 0) res.status(200).json({ data });
         else {
-          res.status(404).json("Không tìm thấy thông tin phim");
+          res.status(404).json({ error: "Không tìm thấy thông tin phim" });
         } //res.status(404).json('Không tìm thấy thông tin phim')
       })
       .catch((err) => {
-        res.status(500).json("Không tìm thấy thông tin phim");
+        res.status(500).json({ error: "Không tìm thấy thông tin phim" });
       });
   }
   //[GET]
@@ -50,11 +50,11 @@ class MoviesController {
           res.status(200).json({ data: movieShowing });
         }
         else {
-          res.status(404).json("Chưa có phim nào");
+          res.status(404).json({ error: "Chưa có phim nào" });
         }
       })
       .catch((err) => {
-        res.status(500).json("Hệ thống đang xử lý, vui lòng chờ");
+        res.status(500).json({ error: "Hệ thống đang xử lý, vui lòng chờ" });
       });
   }
   //[GET]
@@ -72,14 +72,14 @@ class MoviesController {
           res.status(200).json({ data: movieComing });
         }
         else {
-          res.status(404).json("Chưa có phim nào");
+          res.status(404).json({ error: "Chưa có phim nào" });
           // const err = new Error('Chưa có phim nào');
           // err.statusCode = 404
           // return next(err)
         }
       })
       .catch((err) => {
-        res.status(500).json("Hệ thống đang xử lý, vui lòng chờ");
+        res.status(500).json({ error: "Hệ thống đang xử lý, vui lòng chờ" });
         // err = new Error('Hệ thống đang xử lý, vui lòng chờ');
         // err.statusCode = 500
         // return next(err)
@@ -93,14 +93,25 @@ class MoviesController {
         if (data.length != 0) {
           var movies = []
           var countDuplicate = 0
+          var formattedDate = (dateInput) => {
+            let today = new Date(dateInput);
+            const yyyy = today.getFullYear();
+            let mm = today.getMonth() + 1;
+            let dd = today.getDate();
+
+            if (dd < 10) dd = '0' + dd;
+            if (mm < 10) mm = '0' + mm;
+
+            return yyyy + '-' + mm + '-' + dd;
+
+          }
           data.forEach((showtime) => {
             countDuplicate = 0
             showtime.lichChieu.forEach((cumRap) => {
-              //res.status(404).json(cumRap);
-              const date = new Date(cumRap.ngayChieu)
-              if (cumRap.tenCumRap === req.params.maCumRap && date > Date.now()) {
+              const date = formattedDate(new Date(cumRap.ngayChieu))
+              const filterDate = formattedDate(new Date(req.body.ngayDaChon))
+              if (cumRap.tenCumRap === req.params.maCumRap && date == filterDate) {
                 countDuplicate++
-                //   console.log('biến đếm', countDuplicate)
               }
             })
             if (countDuplicate > 0) movies.push(showtime)
@@ -110,11 +121,11 @@ class MoviesController {
           res.status(200).json({ data: movies });
           // res.status(404).json(phim);
         } else {
-          res.status(404).json("Chưa có phim nào");
+          res.status(404).json({ error: "Chưa có phim nào" });
         }
       })
       .catch((err) => {
-        res.status(500).json("Hệ thống đang xử lý, vui lòng chờ");
+        res.status(500).json({ error: "Hệ thống đang xử lý, vui lòng chờ" });
       });
   }
   //[PUT] /movie/:bidanh

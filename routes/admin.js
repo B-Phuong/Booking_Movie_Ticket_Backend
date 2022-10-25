@@ -30,8 +30,8 @@ router.post(
   "/movie/:bidanh/showtime",
   Auth.checkPermission,
   Auth.checkAdmin,
-  validationShowTime,
-  isRequestValidated,
+  // validationShowTime,
+  // isRequestValidated,
   showtimeController.add
 );
 router.get(
