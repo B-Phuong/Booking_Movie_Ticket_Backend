@@ -134,6 +134,7 @@ class MoviesController {
     const movieUpdate = {
       ...movie._doc,
       ...req.body,
+      theLoai: req.body.theLoai.split(","),
       ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
       thoiLuong: Number(req.body.thoiLuong),
     };
