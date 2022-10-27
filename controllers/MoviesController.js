@@ -1,8 +1,8 @@
-require('dotenv').config();
+require("dotenv").config();
 const Movie = require("../models/Movie");
 const TicketBooking = require("../models/TicketBooking");
 const { removeVietnameseTones } = require("../helper/formatString");
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -22,7 +22,7 @@ class MoviesController {
         populate: { path: "tenRap" },
       })
       .then((data) => {
-        console.log(data)
+        console.log(data);
         if (data.length != 0) res.status(200).json({ data });
         else {
           res.status(404).json({ error: "Không tìm thấy thông tin phim" });
@@ -38,18 +38,17 @@ class MoviesController {
       .then((data) => {
         // console.log(data);
         if (data.length != 0) {
-          const movieShowing = []
+          const movieShowing = [];
           data.forEach((movie) => {
             // const formatDate = new Date(movie.ngayKhoiChieu)
-            const dateNow = new Date()
+            const dateNow = new Date();
             // // console.log(formatDate.getDate(), formatDate.getMonth() + 3, dateNow.getMonth() + 1, dateNow.getDate())
             // if (formatDate.getMonth() + 2 >= dateNow.getMonth() && formatDate.getDate() >= dateNow.getDate())
             if (movie.ngayKetThuc > dateNow && movie.ngayKhoiChieu < dateNow)
-              movieShowing.push(movie)
-          })
+              movieShowing.push(movie);
+          });
           res.status(200).json({ data: movieShowing });
-        }
-        else {
+        } else {
           res.status(404).json({ error: "Chưa có phim nào" });
         }
       })
@@ -63,15 +62,13 @@ class MoviesController {
       .then((data) => {
         // console.log(data);
         if (data.length != 0) {
-          const movieComing = []
+          const movieComing = [];
           data.forEach((movie) => {
-            const formatDate = new Date(movie.ngayKhoiChieu)
-            if (formatDate > Date.now())
-              movieComing.push(movie)
-          })
+            const formatDate = new Date(movie.ngayKhoiChieu);
+            if (formatDate > Date.now()) movieComing.push(movie);
+          });
           res.status(200).json({ data: movieComing });
-        }
-        else {
+        } else {
           res.status(404).json({ error: "Chưa có phim nào" });
           // const err = new Error('Chưa có phim nào');
           // err.statusCode = 404
@@ -91,32 +88,46 @@ class MoviesController {
       .populate("lichChieu")
       .then((data) => {
         if (data.length != 0) {
-          var movies = []
-          var countDuplicate = 0
+          var movies = [];
+          var countDuplicate = 0;
           var formattedDate = (dateInput) => {
             let today = new Date(dateInput);
             const yyyy = today.getFullYear();
             let mm = today.getMonth() + 1;
             let dd = today.getDate();
 
-            if (dd < 10) dd = '0' + dd;
-            if (mm < 10) mm = '0' + mm;
+            if (dd < 10) dd = "0" + dd;
+            if (mm < 10) mm = "0" + mm;
 
-            return yyyy + '-' + mm + '-' + dd;
-
-          }
+            return yyyy + "-" + mm + "-" + dd;
+          };
+          let st = [];
           data.forEach((showtime) => {
-            countDuplicate = 0
+            countDuplicate = 0;
             showtime.lichChieu.forEach((cumRap) => {
-              const date = formattedDate(new Date(cumRap.ngayChieu))
-              const filterDate = formattedDate(new Date(req.body.ngayDaChon))
-              if (cumRap.tenCumRap === req.params.maCumRap && date == filterDate) {
-                countDuplicate++
+              const date = formattedDate(new Date(cumRap.ngayChieu));
+              const filterDate = formattedDate(new Date(req.body.ngayDaChon));
+              if (
+                cumRap.tenCumRap === req.params.maCumRap &&
+                date == filterDate
+              ) {
+                countDuplicate++;
+                st.push(cumRap);
+                // res.status(200).json({ data: movies });
               }
-            })
-            if (countDuplicate > 0) movies.push(showtime)
-          }
-          )
+            });
+            if (countDuplicate > 0)
+              movies.push({
+                tenPhim: showtime.tenPhim,
+                theLoai: showtime.theLoai,
+                moTa: showtime.moTa,
+                trailer: showtime.trailer,
+                thoiLuong: showtime.thoiLuong,
+                hinhAnh: showtime.hinhAnh,
+                biDanh: showtime.biDanh,
+                lichChieu: st,
+              });
+          });
           // console.log('dữ liệu của phim', phim)
           res.status(200).json({ data: movies });
           // res.status(404).json(phim);
@@ -130,7 +141,7 @@ class MoviesController {
   }
   //[PUT] /movie/:bidanh
   async edit(req, res) {
-    const movie = await Movie.findOne({ biDanh: req.params.bidanh })
+    const movie = await Movie.findOne({ biDanh: req.params.bidanh });
     const movieUpdate = {
       ...movie._doc,
       ...req.body,
@@ -138,24 +149,30 @@ class MoviesController {
       ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
       thoiLuong: Number(req.body.thoiLuong),
     };
-    console.log(">> req", req.body)
-    console.log('>> req.body.ngayKhoiChieu', req.body.ngayKhoiChieu)
-    console.log('>> ngayKhoiChieu', movieUpdate.ngayKhoiChieu)
+    console.log(">> req", req.body);
+    console.log(">> req.body.ngayKhoiChieu", req.body.ngayKhoiChieu);
+    console.log(">> ngayKhoiChieu", movieUpdate.ngayKhoiChieu);
     if (Object.keys(req.files).length > 0) {
       try {
         const image = req.files.hinhAnh[0].path;
         const banner = req.files.anhBia[0].path;
-        const uploadImageResponse = await cloudinary.uploader.upload(image, { folder: "BookingTicket", use_filename: true });
+        const uploadImageResponse = await cloudinary.uploader.upload(image, {
+          folder: "BookingTicket",
+          use_filename: true,
+        });
         movieUpdate.hinhAnh = uploadImageResponse.url;
         movieUpdate.maHinhAnh = uploadImageResponse.public_id;
-        const uploadBannerResponse = await cloudinary.uploader.upload(banner, { folder: "BookingTicket", use_filename: true });
+        const uploadBannerResponse = await cloudinary.uploader.upload(banner, {
+          folder: "BookingTicket",
+          use_filename: true,
+        });
         movieUpdate.anhBia = uploadBannerResponse.url;
         movieUpdate.maAnhBia = uploadBannerResponse.public_id;
         cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
         cloudinary.uploader.destroy(movie.maAnhBia, { type: "upload" });
-        console.log(">> done upload", movieUpdate)
+        console.log(">> done upload", movieUpdate);
       } catch (err) {
-        res.status(500).json({ error: 'Cập nhật thất bại' });
+        res.status(500).json({ error: "Cập nhật thất bại" });
       }
     }
 
@@ -190,10 +207,12 @@ class MoviesController {
         if (count == 0) {
           Movie.findOneAndUpdate({ biDanh: req.params.bidanh }, { daXoa: true })
             .then((data) => {
-              res.status(200).json({ message: "Xóa thành công", data })
+              res.status(200).json({ message: "Xóa thành công", data });
             })
             .catch((err) => {
-              res.status(500).json({ message: "Hệ thống đang xử lý, vui lòng chờ" });
+              res
+                .status(500)
+                .json({ message: "Hệ thống đang xử lý, vui lòng chờ" });
             });
         } else res.status(400).json({ message: "Xóa không thành công" });
       });
@@ -212,52 +231,62 @@ class MoviesController {
       quocGia: req.body.quocGia,
     });
     const ngayKhoiChieu = new Date(req.body.ngayKhoiChieu);
-    console.log(">>>>ngayKhoiChieu", ngayKhoiChieu)
-    movie.ngayKetThuc = ngayKhoiChieu.setMonth(ngayKhoiChieu.getMonth() + 2)
-    console.log(">>>>ngayKetThuc", movie.ngayKetThuc)
+    console.log(">>>>ngayKhoiChieu", ngayKhoiChieu);
+    movie.ngayKetThuc = ngayKhoiChieu.setMonth(ngayKhoiChieu.getMonth() + 2);
+    console.log(">>>>ngayKetThuc", movie.ngayKetThuc);
     Movie.find({ tenPhim: movie.tenPhim.toUpperCase() })
       .then(async (data) => {
         if (data.length > 0)
-          res.status(400).json({ error: "Tên phim đã được sử dụng" })
+          res.status(400).json({ error: "Tên phim đã được sử dụng" });
         else {
-          let slug = removeVietnameseTones(movie.tenPhim)
+          let slug = removeVietnameseTones(movie.tenPhim);
           slug = slug.split(" ").join("-").toLowerCase();
           let allMoviesBySlug = await Movie.find({
-            "biDanh": {
-              "$regex": RegExp(slug, 'i')
+            biDanh: {
+              $regex: RegExp(slug, "i"),
             },
-          }).sort({ 'createdAt': 1 });
+          }).sort({ createdAt: 1 });
           if (allMoviesBySlug.length > 0) {
-            const splitSlugOfLast = allMoviesBySlug[allMoviesBySlug.length - 1].biDanh.split('-')
-            let currentNumber = Number(splitSlugOfLast[splitSlugOfLast.length - 1])
+            const splitSlugOfLast =
+              allMoviesBySlug[allMoviesBySlug.length - 1].biDanh.split("-");
+            let currentNumber = Number(
+              splitSlugOfLast[splitSlugOfLast.length - 1]
+            );
             if (currentNumber) {
               currentNumber++;
             } else {
               currentNumber = 1;
             }
-            slug += `-${currentNumber}`
+            slug += `-${currentNumber}`;
           }
           movie.biDanh = slug;
           // Upload image to cloudinary
-          console.log(">>", req.files)
+          console.log(">>", req.files);
           try {
             const image = req.files.hinhAnh[0].path;
             const banner = req.files.anhBia[0].path;
-            const uploadImageResponse = await cloudinary.uploader.upload(image, { folder: "BookingTicket", use_filename: true });
+            const uploadImageResponse = await cloudinary.uploader.upload(
+              image,
+              { folder: "BookingTicket", use_filename: true }
+            );
             movie.hinhAnh = uploadImageResponse.url;
             movie.maHinhAnh = uploadImageResponse.public_id;
-            const uploadBannerResponse = await cloudinary.uploader.upload(banner, { folder: "BookingTicket", use_filename: true });
+            const uploadBannerResponse = await cloudinary.uploader.upload(
+              banner,
+              { folder: "BookingTicket", use_filename: true }
+            );
             movie.anhBia = uploadBannerResponse.url;
             movie.maAnhBia = uploadBannerResponse.public_id;
-            await movie.save()
-            res.status(201).json({ message: 'Thêm phim thành công', data: movie })
+            await movie.save();
+            res
+              .status(201)
+              .json({ message: "Thêm phim thành công", data: movie });
           } catch (err) {
-            res.status(500).json({ error: 'Thêm phim thất bại' });
+            res.status(500).json({ error: "Thêm phim thất bại" });
           }
         }
       })
-      .catch(() => {
-      })
+      .catch(() => {});
   }
   //[GET] topMoives
   top10Movies(res) {
@@ -266,17 +295,13 @@ class MoviesController {
       .limit(10)
       .then((data) => {
         if (data.length > 0)
-          res
-            .status(200)
-            .json({
-              data
-            });
+          res.status(200).json({
+            data,
+          });
         else
-          res
-            .status(404)
-            .json({
-              message: "Top 10 phim được xem nhiều của rạp"
-            });
+          res.status(404).json({
+            message: "Top 10 phim được xem nhiều của rạp",
+          });
       })
       .catch((err) => {
         res.status(500).json({ error: "Hệ thống đang xử lý" });
