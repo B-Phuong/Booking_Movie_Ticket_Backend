@@ -4,7 +4,7 @@ const movieController = require("../controllers/MoviesController");
 const showtimeController = require("../controllers/ShowtimesController");
 const accountController = require("../controllers/AccountsController");
 const userController = require("../controllers/UsersController");
-const FoodsDrinksController = require("../controllers/FoodsDrinksController")
+const FoodDrinksController = require("../controllers/FoodDrinksController")
 const {
   validationMovie,
   validationUser,
@@ -126,12 +126,12 @@ router.post("/food_drink", Auth.checkPermission,
   upload.single("hinhAnh"),
   validationFoodsAndDrinks,
   isRequestValidated,
-  FoodsDrinksController.add
+  FoodDrinksController.add
 );
 router.put("/food_drink/:bidanh", Auth.checkPermission,
   Auth.checkAdmin,
   upload.single("hinhAnh"),
-  FoodsDrinksController.update
+  FoodDrinksController.update
 );
 
 router.get(

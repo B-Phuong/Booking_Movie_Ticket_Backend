@@ -2,6 +2,7 @@ require("dotenv").config();
 const Movie = require("../models/Movie");
 const TicketBooking = require("../models/TicketBooking");
 const { removeVietnameseTones } = require("../helper/formatString");
+const { default: isURL } = require("validator/lib/isURL");
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -149,28 +150,31 @@ class MoviesController {
       ngayKhoiChieu: new Date(req.body.ngayKhoiChieu),
       thoiLuong: Number(req.body.thoiLuong),
     };
-    console.log(">> req", req.body);
-    console.log(">> req.body.ngayKhoiChieu", req.body.ngayKhoiChieu);
-    console.log(">> ngayKhoiChieu", movieUpdate.ngayKhoiChieu);
-    if (Object.keys(req.files).length > 0) {
+    if (req.files.hinhAnh != undefined) {
       try {
         const image = req.files.hinhAnh[0].path;
-        const banner = req.files.anhBia[0].path;
         const uploadImageResponse = await cloudinary.uploader.upload(image, {
           folder: "BookingTicket",
           use_filename: true,
         });
         movieUpdate.hinhAnh = uploadImageResponse.url;
         movieUpdate.maHinhAnh = uploadImageResponse.public_id;
+        cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
+      } catch (err) {
+        res.status(500).json({ error: "Cập nhật thất bại" });
+      }
+    }
+    if (req.files.anhBia != undefined) {
+      try {
+        const banner = req.files.anhBia[0].path;
         const uploadBannerResponse = await cloudinary.uploader.upload(banner, {
           folder: "BookingTicket",
           use_filename: true,
         });
         movieUpdate.anhBia = uploadBannerResponse.url;
         movieUpdate.maAnhBia = uploadBannerResponse.public_id;
-        cloudinary.uploader.destroy(movie.maHinhAnh, { type: "upload" });
         cloudinary.uploader.destroy(movie.maAnhBia, { type: "upload" });
-        console.log(">> done upload", movieUpdate);
+        // console.log(">> done upload", movieUpdate);
       } catch (err) {
         res.status(500).json({ error: "Cập nhật thất bại" });
       }
@@ -286,7 +290,7 @@ class MoviesController {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
   //[GET] topMoives
   top10Movies(res) {

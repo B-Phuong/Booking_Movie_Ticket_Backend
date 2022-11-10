@@ -10,7 +10,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-class FoodsDrinksController {
+class FoodDrinksController {
     async getAll(req, res) {
         const foodsAndDrinks = await FoodsAndDrinks.find({ daXoa: false });
         res.status(200).json({ data: foodsAndDrinks });
@@ -92,8 +92,8 @@ class FoodsDrinksController {
     }
 
     async getDetail(req, res) {
-        let detail = await FoodsAndDrinks.findOne({ _id: req.params.id, daXoa: false })
+        let detail = await FoodsAndDrinks.findOne({ biDanh: req.params.bidanh, daXoa: false })
         return res.status(200).json({ data: detail })
     }
 }
-module.exports = new FoodsDrinksController;
+module.exports = new FoodDrinksController;
