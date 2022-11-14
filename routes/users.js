@@ -3,7 +3,7 @@ const router = express.Router();
 const Auth = require('../middleware/Auth')
 const showtimeController = require('../controllers/ShowtimesController');
 const userController = require('../controllers/UsersController');
-const FoodsDrinksController = require('../controllers/FoodsDrinksController')
+const FoodDrinksController = require('../controllers/FoodDrinksController')
 const { validationUser, isRequestValidated, validationChangePassword } = require('../middleware/Values');
 const emailServices = require('../services/emailServices');
 //const shortid = require("shortid");
@@ -15,8 +15,8 @@ router.post('/:bidanh/showtime/:IDshowtime', Auth.checkPermission, Auth.checkUse
 router.get('/:bidanh/showtime/getchair', Auth.checkPermission, Auth.checkUser, showtimeController.getAllChair);
 router.post('/changeTicketBooking/:IDTicket', Auth.checkPermission, Auth.checkUser, userController.changeTicketBooking);
 router.get('/history/:IDticket', Auth.checkPermission, Auth.checkUser, userController.getHistoryTicketById);
-router.get('/food_drink/:id', FoodsDrinksController.getDetail);
-router.get('/food_drink', FoodsDrinksController.getAll);
+router.get('/food_drink/:bidanh', FoodDrinksController.getDetail);
+router.get('/food_drink', FoodDrinksController.getAll);
 router.get('/history', Auth.checkPermission, Auth.checkUser, userController.history); ///user/:id/editPassword
 router.put('/editPassword', Auth.checkPermission, Auth.checkUser, validationChangePassword, isRequestValidated, userController.editPassword);
 router.get('/cancelBooking/:IDTicket', Auth.checkPermission, Auth.checkUser, userController.cancelBooking);

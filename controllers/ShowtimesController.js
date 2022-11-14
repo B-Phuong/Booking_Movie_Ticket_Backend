@@ -2,8 +2,8 @@ const Movie = require("../models/Movie");
 const ShowTime = require("../models/Showtime");
 const Room = require("../models/Room");
 const Movietheater = require("../models/Movietheater");
-const TicketBooking = require('../models/TicketBooking');
-const jwt = require('jsonwebtoken');
+const TicketBooking = require("../models/TicketBooking");
+const jwt = require("jsonwebtoken");
 const sendEmail = require("../services/emailServices");
 const emailServices = require("../services/emailServices");
 const User = require("../models/User");
@@ -30,17 +30,21 @@ class ShowTimeController {
   //[POST] /movie/:bidanh/showtime
   async add(req, res) {
     let ngaychieu = new Date(req.body.ngayChieu);
-    console.log("ngày chiếu phim", ngaychieu);
+    // console.log("ngày chiếu phim", ngaychieu);
     let showtime = new ShowTime({
       ...req.body,
       gioKetThuc: new Date(req.body.ngayChieu),
     });
-    const movie = await Movie.findOne({ biDanh: req.params.bidanh }).populate('lichChieu'); //
+    const movie = await Movie.findOne({ biDanh: req.params.bidanh }).populate(
+      "lichChieu"
+    ); //
     if (movie) {
       if (0 < ngaychieu.getHours() && ngaychieu.getHours() < 9) {
         return res
           .status(400)
-          .json({ error: "Hãy chọn lịch trong khung giờ từ 9h sáng tới 12h đêm" });
+          .json({
+            error: "Hãy chọn lịch trong khung giờ từ 9h sáng tới 12h đêm",
+          });
       }
       const hour = ngaychieu.getHours() + movie.thoiLuong / 60; //
       const minute = ngaychieu.getMinutes() + (movie.thoiLuong % 60); //
@@ -57,14 +61,27 @@ class ShowTimeController {
         tenCumRap: showtime.tenCumRap,
       });
       await movie.lichChieu.forEach(async (st) => {
-        if (st.ngayChieu.toLocaleString("en-AU") == showtime.ngayChieu.toLocaleString("en-AU") && st.tenCumRap === showtime.tenCumRap) {
-          console.log('id rạp trùng', st.tenCumRap, showtime.tenCumRap)
-          console.log('giờ chiếu trùng', st.ngayChieu, showtime.ngayChieu)
-          return res.status(400).json({ error: "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác" });
+        if (
+          st.ngayChieu.toLocaleString("en-AU") ==
+            showtime.ngayChieu.toLocaleString("en-AU") &&
+          st.tenCumRap === showtime.tenCumRap
+        ) {
+          // console.log('id rạp trùng', st.tenCumRap, showtime.tenCumRap)
+          // console.log('giờ chiếu trùng', st.ngayChieu, showtime.ngayChieu)
+          return res
+            .status(400)
+            .json({
+              error:
+                "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác",
+            });
         }
-      })
+      });
       if (new Date(showtime.ngayChieu) < Date.now())
-        return res.status(400).json({ error: "Giờ tạo lịch chiếu phải lớn hơn thời gian hiện tại" });
+        return res
+          .status(400)
+          .json({
+            error: "Giờ tạo lịch chiếu phải lớn hơn thời gian hiện tại",
+          });
       var count = 0;
       availableShowtime.forEach((st) => {
         if (
@@ -72,7 +89,7 @@ class ShowTimeController {
           st.gioKetThuc >= showtime.ngayChieu
         ) {
           count++;
-          console.log("đếm", count);
+          //  console.log("đếm", count);
           return res.status(400).json({
             error:
               "Không thể tạo lịch chiếu cho phim do rạp đang có lịch chiếu khác",
@@ -83,7 +100,7 @@ class ShowTimeController {
         const newShowtime = await showtime.save();
         if (newShowtime) {
           const id = newShowtime._id;
-          console.log(id, "id của lịch chiếu");
+          //console.log(id, "id của lịch chiếu");
           const addShowtimeToMovie = await Movie.findOne({
             biDanh: req.params.bidanh,
           });
@@ -92,7 +109,12 @@ class ShowTimeController {
           //  addShowtimeToMovie.soLuongBan = addShowtimeToMovie.soLuongBan + 1;
           const Successful = await addShowtimeToMovie.save();
           if (Successful)
-            res.status(201).json({ message: "Tạo lịch chiếu thành công", data: newShowtime });
+            res
+              .status(201)
+              .json({
+                message: "Tạo lịch chiếu thành công",
+                data: newShowtime,
+              });
           else {
             res.status(400).json({ error: "Tạo lịch chiếu thất bại" });
           }
@@ -146,37 +168,40 @@ class ShowTimeController {
   async ticketBooking(req, res) {
     const IDShowTime = req.params.IDshowtime;
     let usedPoint = req.body.diemSuDung;
-    let foodList = req.body?.danhSachAnUong
+    let foodList = req.body?.danhSachAnUong;
     const ticket = req.body.danhSachGhe;
     var seatList = [];
     var seatPicked = [];
     let showtime = await ShowTime.findById(IDShowTime);
-    let exit = false, SeatUnavailable
+    let exit = false,
+      SeatUnavailable;
     if (showtime) {
       ticket.forEach((dsGhe) => {
         if (showtime.gheDaChon.indexOf(dsGhe) != -1) {
           exit = true;
-          SeatUnavailable = dsGhe
-          return;// res.status(400).json({ error: `Ghế ${dsGhe} đã có người đặt, vui lòng hãy chọn ghế khác` })
-        }
-        else {
+          SeatUnavailable = dsGhe;
+          return; // res.status(400).json({ error: `Ghế ${dsGhe} đã có người đặt, vui lòng hãy chọn ghế khác` })
+        } else {
           seatList.push({ maGhe: dsGhe, giaGhe: showtime.giaVe });
           seatPicked.push(dsGhe);
         }
       });
-    }
-    else (res.status(400).json({ error: 'Vui lòng kiểm tra lại lịch chiếu' }))
+    } else res.status(400).json({ error: "Vui lòng kiểm tra lại lịch chiếu" });
     if (exit) {
       // console.log(`>>Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác`, req.body.soThuTu)
       // console.log(`>>request ${req.body.soThuTu} kết thúc lúc`, new Date())
-      return res.status(400).json({ error: `Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác` })
+      return res
+        .status(400)
+        .json({
+          error: `Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác`,
+        });
     }
-    const movie = await Movie.findOne({ biDanh: req.params.bidanh })
+    const movie = await Movie.findOne({ biDanh: req.params.bidanh });
     let total;
     total = showtime.giaVe * seatPicked.length;
     foodList?.map((item) => {
-      total += item.soLuong * item.giaTien
-    })
+      total += item.soLuong * item.giaTien;
+    });
     const booking = new TicketBooking({
       maLichChieu: IDShowTime,
       danhSachVe: seatList,
@@ -184,47 +209,80 @@ class ShowTimeController {
       tentaiKhoan: req.user,
       phim: movie._id,
       tienThanhToan: total,
-    })
+    });
     booking
       .save()
       .then(async () => {
         // console.log(">>BOOKING inf", booking)
-        showtime.gheDaChon = [...showtime.gheDaChon, ...seatPicked]
-        const numberOfSeat = seatPicked.length
+        showtime.gheDaChon = [...showtime.gheDaChon, ...seatPicked];
+        const numberOfSeat = seatPicked.length;
         const ticketBooking = await showtime.save();
         if (ticketBooking) {
           if (movie) {
             movie.soLuongBan = movie.soLuongBan + numberOfSeat;
-            movie.save()
+            movie
+              .save()
               .then(() => {
                 User.findOne({ _id: req.user })
                   .then((data) => {
                     if (data) {
                       if (usedPoint == 0) {
-                        data.diemThuong += Math.round((showtime.giaVe * numberOfSeat) / 1000 * 0.05)
+                        data.diemThuong += Math.round(
+                          ((showtime.giaVe * numberOfSeat) / 1000) * 0.05
+                        );
                         // console.log(`>>request ${req.body.soThuTu} THÀNH CÔNG, kết thúc lúc`, new Date())
-                        data.save()
-                          .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
-                          .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                        data
+                          .save()
+                          .then(() =>
+                            res
+                              .status(200)
+                              .json({
+                                message: "Đặt vé thành công",
+                                data: data,
+                              })
+                          )
+                          .catch(() =>
+                            res.status(500).json({ error: "Đã xảy ra lỗi" })
+                          );
                       } else {
                         // console.log('test', (showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
-                        data.diemThuong = data.diemThuong - usedPoint + Math.round((showtime.giaVe * numberOfSeat - usedPoint * 1000) / 1000 * 0.05)
+                        data.diemThuong =
+                          data.diemThuong -
+                          usedPoint +
+                          Math.round(
+                            ((showtime.giaVe * numberOfSeat -
+                              usedPoint * 1000) /
+                              1000) *
+                              0.05
+                          );
                         // console.log('data.diemThuong', data.diemThuong)
                         // console.log(`>>request ${req.body.soThuTu} THÀNH CÔNG, kết thúc lúc`, new Date())
-                        data.save()
-                          .then(() => res.status(200).json({ message: "Đặt vé thành công", data: data }))
-                          .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                        data
+                          .save()
+                          .then(() =>
+                            res
+                              .status(200)
+                              .json({
+                                message: "Đặt vé thành công",
+                                data: data,
+                              })
+                          )
+                          .catch(() =>
+                            res.status(500).json({ error: "Đã xảy ra lỗi" })
+                          );
                       }
                     }
                   })
-                  .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+                  .catch(() =>
+                    res.status(500).json({ error: "Đã xảy ra lỗi" })
+                  );
               })
-              .catch(() => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+              .catch(() => res.status(500).json({ error: "Đã xảy ra lỗi" }));
           }
         } else res.status(500).json({ error: "Chưa thể tiến hành đặt vé" });
       })
       .catch(async (err) => {
-        await TicketBooking.deleteOne({ _id: booking._id })
+        await TicketBooking.deleteOne({ _id: booking._id });
         // console.log(err)
         return res.status(500).json({ error: "Đặt vé thất bại" });
       });
