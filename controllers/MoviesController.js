@@ -23,7 +23,7 @@ class MoviesController {
         populate: { path: "tenRap" },
       })
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         if (data.length != 0) res.status(200).json({ data });
         else {
           res.status(404).json({ error: "Không tìm thấy thông tin phim" });
@@ -235,9 +235,9 @@ class MoviesController {
       quocGia: req.body.quocGia,
     });
     const ngayKhoiChieu = new Date(req.body.ngayKhoiChieu);
-    console.log(">>>>ngayKhoiChieu", ngayKhoiChieu);
+    // console.log(">>>>ngayKhoiChieu", ngayKhoiChieu);
     movie.ngayKetThuc = ngayKhoiChieu.setMonth(ngayKhoiChieu.getMonth() + 2);
-    console.log(">>>>ngayKetThuc", movie.ngayKetThuc);
+    //console.log(">>>>ngayKetThuc", movie.ngayKetThuc);
     Movie.find({ tenPhim: movie.tenPhim.toUpperCase() })
       .then(async (data) => {
         if (data.length > 0)
@@ -265,7 +265,7 @@ class MoviesController {
           }
           movie.biDanh = slug;
           // Upload image to cloudinary
-          console.log(">>", req.files);
+          //console.log(">>", req.files);
           try {
             const image = req.files.hinhAnh[0].path;
             const banner = req.files.anhBia[0].path;
@@ -290,7 +290,7 @@ class MoviesController {
           }
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }
   //[GET] topMoives
   top10Movies(res) {
