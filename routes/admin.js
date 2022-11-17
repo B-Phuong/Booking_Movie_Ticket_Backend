@@ -4,20 +4,20 @@ const movieController = require("../controllers/MoviesController");
 const showtimeController = require("../controllers/ShowtimesController");
 const accountController = require("../controllers/AccountsController");
 const userController = require("../controllers/UsersController");
-const FoodDrinksController = require("../controllers/FoodDrinksController")
+const FoodDrinksController = require("../controllers/FoodDrinksController");
 const {
   validationMovie,
   validationUser,
   isRequestValidated,
   validationShowTime,
-  validationFoodsAndDrinks
+  validationFoodsAndDrinks,
 } = require("../middleware/Values");
 const Auth = require("../middleware/Auth");
 //const shortid = require("shortid");
 const ShowtimesController = require("../controllers/ShowtimesController");
 const upload = require("../services/multer");
-require('dotenv').config();
-const cloudinary = require('cloudinary').v2;
+require("dotenv").config();
+const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -33,6 +33,14 @@ router.post(
   // validationShowTime,
   // isRequestValidated,
   showtimeController.add
+);
+router.delete(
+  "/movie/:bidanh/showtime",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  // validationShowTime,
+  // isRequestValidated,
+  showtimeController.delete
 );
 router.get(
   "/movie/topShowtimes",
@@ -60,34 +68,34 @@ router.put(
   "/movie/:bidanh",
   Auth.checkPermission,
   Auth.checkAdmin,
-  upload.fields(
-    [
-      {
-        name: 'hinhAnh',
-        maxCount: 1
-      },
-      {
-        name: 'anhBia', maxCount: 1
-      }
-    ]),
+  upload.fields([
+    {
+      name: "hinhAnh",
+      maxCount: 1,
+    },
+    {
+      name: "anhBia",
+      maxCount: 1,
+    },
+  ]),
   // validationMovie,
   // isRequestValidated,
-  movieController.edit,
+  movieController.edit
 );
 router.post(
   "/movie",
   Auth.checkPermission,
   Auth.checkAdmin,
-  upload.fields(
-    [
-      {
-        name: 'hinhAnh',
-        maxCount: 1
-      },
-      {
-        name: 'anhBia', maxCount: 1
-      }
-    ]),
+  upload.fields([
+    {
+      name: "hinhAnh",
+      maxCount: 1,
+    },
+    {
+      name: "anhBia",
+      maxCount: 1,
+    },
+  ]),
   // validationMovie,
   // isRequestValidated,
   movieController.add
@@ -121,14 +129,18 @@ router.get(
   userController.getAllUser
 );
 
-router.post("/food_drink", Auth.checkPermission,
+router.post(
+  "/food_drink",
+  Auth.checkPermission,
   Auth.checkAdmin,
   upload.single("hinhAnh"),
   validationFoodsAndDrinks,
   isRequestValidated,
   FoodDrinksController.add
 );
-router.put("/food_drink/:bidanh", Auth.checkPermission,
+router.put(
+  "/food_drink/:bidanh",
+  Auth.checkPermission,
   Auth.checkAdmin,
   upload.single("hinhAnh"),
   FoodDrinksController.update

@@ -13,7 +13,7 @@ class Auth {
         );
         const token = req.headers.authorization.split(" ")[1];
         const user = jwt.verify(token, "user"); //_id, maLoaiNguoiDung
-        console.log(`>>request ${req.body.soThuTu} nhận lúc`, new Date());
+        // console.log(`>>request ${req.body.soThuTu} nhận lúc`, new Date());
         console.log("người dùng khi đăng nhập", user);
         req.data = user;
         next();

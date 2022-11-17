@@ -40,11 +40,9 @@ class ShowTimeController {
     ); //
     if (movie) {
       if (0 < ngaychieu.getHours() && ngaychieu.getHours() < 9) {
-        return res
-          .status(400)
-          .json({
-            error: "Hãy chọn lịch trong khung giờ từ 9h sáng tới 12h đêm",
-          });
+        return res.status(400).json({
+          error: "Hãy chọn lịch trong khung giờ từ 9h sáng tới 12h đêm",
+        });
       }
       const hour = ngaychieu.getHours() + movie.thoiLuong / 60; //
       const minute = ngaychieu.getMinutes() + (movie.thoiLuong % 60); //
@@ -68,20 +66,16 @@ class ShowTimeController {
         ) {
           // console.log('id rạp trùng', st.tenCumRap, showtime.tenCumRap)
           // console.log('giờ chiếu trùng', st.ngayChieu, showtime.ngayChieu)
-          return res
-            .status(400)
-            .json({
-              error:
-                "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác",
-            });
+          return res.status(400).json({
+            error:
+              "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác",
+          });
         }
       });
       if (new Date(showtime.ngayChieu) < Date.now())
-        return res
-          .status(400)
-          .json({
-            error: "Giờ tạo lịch chiếu phải lớn hơn thời gian hiện tại",
-          });
+        return res.status(400).json({
+          error: "Giờ tạo lịch chiếu phải lớn hơn thời gian hiện tại",
+        });
       var count = 0;
       availableShowtime.forEach((st) => {
         if (
@@ -109,12 +103,10 @@ class ShowTimeController {
           //  addShowtimeToMovie.soLuongBan = addShowtimeToMovie.soLuongBan + 1;
           const Successful = await addShowtimeToMovie.save();
           if (Successful)
-            res
-              .status(201)
-              .json({
-                message: "Tạo lịch chiếu thành công",
-                data: newShowtime,
-              });
+            res.status(201).json({
+              message: "Tạo lịch chiếu thành công",
+              data: newShowtime,
+            });
           else {
             res.status(400).json({ error: "Tạo lịch chiếu thất bại" });
           }
@@ -190,11 +182,9 @@ class ShowTimeController {
     if (exit) {
       // console.log(`>>Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác`, req.body.soThuTu)
       // console.log(`>>request ${req.body.soThuTu} kết thúc lúc`, new Date())
-      return res
-        .status(400)
-        .json({
-          error: `Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác`,
-        });
+      return res.status(400).json({
+        error: `Ghế ${SeatUnavailable} đã có người đặt, vui lòng hãy chọn ghế khác`,
+      });
     }
     const movie = await Movie.findOne({ biDanh: req.params.bidanh });
     let total;
@@ -234,12 +224,10 @@ class ShowTimeController {
                         data
                           .save()
                           .then(() =>
-                            res
-                              .status(200)
-                              .json({
-                                message: "Đặt vé thành công",
-                                data: data,
-                              })
+                            res.status(200).json({
+                              message: "Đặt vé thành công",
+                              data: data,
+                            })
                           )
                           .catch(() =>
                             res.status(500).json({ error: "Đã xảy ra lỗi" })
@@ -260,12 +248,10 @@ class ShowTimeController {
                         data
                           .save()
                           .then(() =>
-                            res
-                              .status(200)
-                              .json({
-                                message: "Đặt vé thành công",
-                                data: data,
-                              })
+                            res.status(200).json({
+                              message: "Đặt vé thành công",
+                              data: data,
+                            })
                           )
                           .catch(() =>
                             res.status(500).json({ error: "Đã xảy ra lỗi" })
@@ -298,6 +284,52 @@ class ShowTimeController {
           });
           res.status(200).json(total);
         }
+      })
+      .catch((err) => res.status(500).json({ error: "Thử lại sau" }));
+  }
+
+  delete(req, res) {
+    console.log(">> req.body.maLichChieu", req.body.maLichChieu);
+    ShowTime.findById(req.body.maLichChieu)
+      .then(async (data) => {
+        // console.log(">> data", data);
+        if (data) {
+          let isValid = data.gheDaChon.length > 0 ? false : true;
+          // console.log(">> isDelete", isValid);
+          if (isValid) {
+            let showtime = await ShowTime.findByIdAndDelete(
+              req.body.maLichChieu
+            );
+            // console.log(">> showtimee", showtime);
+            if (showtime) {
+              const movie = await Movie.findOne({
+                biDanh: req.params.bidanh,
+              });
+              const showtimes = movie.lichChieu;
+              var index = showtimes.indexOf(showtime._id);
+              if (index !== -1) {
+                showtimes.splice(index, 1);
+              }
+              // console.log(">> after remove", showtimes);
+              const isSuccessful = await movie.save();
+              if (isSuccessful)
+                return res.status(200).json({
+                  message: "Xóa lịch chiếu thành công",
+                  data,
+                });
+              else {
+                console.log(">> failed");
+                return res
+                  .status(400)
+                  .json({ error: "Xóa lịch chiếu thất bại" });
+              }
+            }
+          }
+          return res.status(400).json({ error: "Lịch chiếu đã có người đặt" });
+        } else
+          return res
+            .status(400)
+            .json({ error: "Không tìm thấy lịch chiếu để xóa" });
       })
       .catch((err) => res.status(500).json({ error: "Thử lại sau" }));
   }
