@@ -153,4 +153,11 @@ router.get(
   showtimeController.goodSales
 );
 
+router.get(
+  "/ticketBookings",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  showtimeController.getAllTicketBookings
+);
+
 module.exports = router;

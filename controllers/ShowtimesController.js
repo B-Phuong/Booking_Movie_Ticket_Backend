@@ -274,6 +274,11 @@ class ShowTimeController {
       });
   }
 
+  async getAllTicketBookings(req, res) {
+    let tickets = await TicketBooking.find().populate("maLichChieu");
+    // console.log(">> tickets", tickets);
+    return res.status(200).json({ data: tickets });
+  }
   goodSales(res) {
     TicketBooking.find({})
       .then((data) => {
@@ -289,7 +294,7 @@ class ShowTimeController {
   }
 
   delete(req, res) {
-    console.log(">> req.body.maLichChieu", req.body.maLichChieu);
+    // console.log(">> req.body.maLichChieu", req.body.maLichChieu);
     ShowTime.findById(req.body.maLichChieu)
       .then(async (data) => {
         // console.log(">> data", data);

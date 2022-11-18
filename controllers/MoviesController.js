@@ -293,27 +293,24 @@ class MoviesController {
       .catch(() => {});
   }
   //[GET] topMoives
-  top10Movies(res) {
+  top10Movies(req, res) {
     Movie.find({ soLuongBan: { $gt: 0 } })
       .sort({ soLuongBan: -1 })
       .limit(10)
       .then((data) => {
-        if (data.length > 0)
-          res.status(200).json({
-            data,
-          });
-        else
-          res.status(404).json({
-            message: "Top 10 phim được xem nhiều của rạp",
-          });
+        // console.log(">> data top movies", data);
+        return res.status(200).json({
+          data,
+        });
       })
       .catch((err) => {
-        res.status(500).json({ error: "Hệ thống đang xử lý" });
+        console.log(">> in catch");
+        return res.status(500).json({ error: "Hệ thống đang xử lý" });
       });
   }
   //[GET] topShowtimes
   //LẤY THỜI GIAN KHÁCH chọn CHIẾU -> lưu 1 mảng để thống kê số lần mua -> xếp hạng (CHƯA LÀM ĐƯỢC)
-  async top20Showtimes(res) {
+  async top20Showtimes(req, res) {
     const ticket = await TicketBooking.find({}).populate("maLichChieu");
     res.json(ticket);
     ticket.find({ "maLichChieu.ngayChieu": { $gt: "maLichChieu.ngayChieu" } });
