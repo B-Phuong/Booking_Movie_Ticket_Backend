@@ -3,7 +3,7 @@ const TicketBooking = require("../models/TicketBooking");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Showtime = require("../models/Showtime");
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -30,22 +30,30 @@ class UsersController {
     const userInfo = await User.findOne({ _id: req.user });
     const userUpdate = {
       ...userInfo._doc,
-      ...req.body
-    }
+      ...req.body,
+    };
     if (req.body.SDT && req.body.hoTen && req.body.email) {
       try {
         const fileStr = req.file.path;
-        const uploadResponse = await cloudinary.uploader.upload(fileStr, { folder: "BookingTicket", use_filename: true });
+        const uploadResponse = await cloudinary.uploader.upload(fileStr, {
+          folder: "BookingTicket",
+          use_filename: true,
+        });
         userUpdate.anhDaiDien = uploadResponse.url;
         userUpdate.maHinhAnh = uploadResponse.public_id;
-        userInfo.maHinhAnh ? cloudinary.uploader.destroy(userInfo.maHinhAnh, { type: "upload" }) : '';
+        userInfo.maHinhAnh
+          ? cloudinary.uploader.destroy(userInfo.maHinhAnh, { type: "upload" })
+          : "";
       } catch (err) {
-        return res.status(500).json({ error: 'Cập nhật thất bại' });
+        return res.status(500).json({ error: "Cập nhật thất bại" });
       }
 
       User.findByIdAndUpdate(req.user, userUpdate)
         .then(() => {
-          res.status(200).json({ message: "Bạn đã chỉnh sửa được thông tin!", data: userUpdate });
+          res.status(200).json({
+            message: "Bạn đã chỉnh sửa được thông tin!",
+            data: userUpdate,
+          });
         })
         .catch((err) => {
           res.status(400).json({ error: "Bạn chỉnh sửa thông tin thất bại!" });
@@ -74,13 +82,13 @@ class UsersController {
     User.find(query) //{ "hoTen": name }
       .then((data) => {
         if (data.length == 0) {
-          res.status(404).json({ error: "Không tìm thấy người dùng" })
+          res.status(404).json({ error: "Không tìm thấy người dùng" });
         } else {
           res.status(200).json({ data });
         }
       })
       .catch((err) => {
-        res.status(404).json({ error: "Không tìm thấy người dùng" })
+        res.status(404).json({ error: "Không tìm thấy người dùng" });
       });
   }
 
@@ -112,7 +120,7 @@ class UsersController {
   }
 
   //[GET] /admin/user
-  getAllUser(res) {
+  getAllUser(req, res) {
     User.find({ maLoaiNguoiDung: "1" })
       .then((data) => {
         res.status(200).json({ data });
@@ -132,7 +140,12 @@ class UsersController {
           if (req.body.matKhauMoi === req.body.nhapLaiMatKhau) {
             const hashPassword = bcrypt.hashSync(req.body.matKhauMoi, 10);
             User.findByIdAndUpdate(req.user, { matKhau: hashPassword })
-              .then((updateinfo) => res.status(200).json({ message: "Cập nhật thông tin thành công", data: updateinfo }))
+              .then((updateinfo) =>
+                res.status(200).json({
+                  message: "Cập nhật thông tin thành công",
+                  data: updateinfo,
+                })
+              )
               .catch((err) => {
                 res.status(500).json({ error: "Cập nhật thất bại" });
               });
@@ -148,16 +161,15 @@ class UsersController {
       });
   }
   getHistoryTicketById(req, res) {
-    TicketBooking.findOne({ _id: req.params.IDticket })//
+    TicketBooking.findOne({ _id: req.params.IDticket }) //
       .populate("maLichChieu")
       .populate("tentaiKhoan")
       .then((data) => {
         if (data) {
-          res.status(200).json(data)
-        }
-        else res.status(404).json({ error: 'Không lấy được thông tin vé' })
+          res.status(200).json(data);
+        } else res.status(404).json({ error: "Không lấy được thông tin vé" });
       })
-      .catch(err => res.status(500).json({ error: 'Đã xảy ra lỗi' }))
+      .catch((err) => res.status(500).json({ error: "Đã xảy ra lỗi" }));
   }
 
   changeTicketBooking(req, res) {
@@ -175,10 +187,10 @@ class UsersController {
           //console.log('lịch chiếu', data.maLichChieu)
           if (time >= now) {
             showtimeID = data.maLichChieu._id;
-            data.danhSachGheDoi = req.body.danhSachGheMoi
+            data.danhSachGheDoi = req.body.danhSachGheMoi;
             data.daDoi = true;
             let listChair = [];
-            let listNewChair = req.body.danhSachGheMoi
+            let listNewChair = req.body.danhSachGheMoi;
             data.danhSachVe.map((ghe) => {
               listChair.push(ghe.maGhe);
             });
@@ -197,11 +209,16 @@ class UsersController {
                         }
                       });
                       listNewChair.map((ghe) => {
-                        showtime.gheDaChon.push(ghe)
-                      })
+                        showtime.gheDaChon.push(ghe);
+                      });
                       showtime
                         .save()
-                        .then(() => res.status(200).json({ message: "Đổi vé thành công", data: showtime }))
+                        .then(() =>
+                          res.status(200).json({
+                            message: "Đổi vé thành công",
+                            data: showtime,
+                          })
+                        )
                         .catch((err) => res.status(400).json());
                     }
                   })
@@ -215,7 +232,6 @@ class UsersController {
         }
       });
   }
-
 
   cancelBooking(req, res) {
     TicketBooking.findOne({ _id: req.params.IDTicket })
@@ -253,7 +269,12 @@ class UsersController {
                       });
                       showtime
                         .save()
-                        .then(() => res.status(200).json({ message: "Hoàn vé thành công", data: showtime }))
+                        .then(() =>
+                          res.status(200).json({
+                            message: "Hoàn vé thành công",
+                            data: showtime,
+                          })
+                        )
                         .catch((err) => res.status(400).json());
                     }
                   })
