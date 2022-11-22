@@ -160,4 +160,11 @@ router.get(
   showtimeController.getAllTicketBookings
 );
 
+router.post(
+  "/revenue",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  showtimeController.quarterlyRevenue
+);
+
 module.exports = router;

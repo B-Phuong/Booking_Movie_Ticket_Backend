@@ -275,7 +275,9 @@ class ShowTimeController {
   }
 
   async getAllTicketBookings(req, res) {
-    let tickets = await TicketBooking.find().populate("maLichChieu");
+    let tickets = await TicketBooking.find()
+      .populate("maLichChieu")
+      .sort({ "maLichChieu.ngayChieu": 1 });
     // console.log(">> tickets", tickets);
     return res.status(200).json({ data: tickets });
   }
@@ -337,6 +339,44 @@ class ShowTimeController {
             .json({ error: "Không tìm thấy lịch chiếu để xóa" });
       })
       .catch((err) => res.status(500).json({ error: "Thử lại sau" }));
+  }
+
+  async quarterlyRevenue(req, res) {
+    let quarter = [
+      {
+        begin: 1,
+        end: 3,
+      },
+      {
+        begin: 4,
+        end: 6,
+      },
+      {
+        begin: 7,
+        end: 9,
+      },
+      {
+        begin: 10,
+        end: 12,
+      },
+    ];
+    let temp = quarter[Number(req.body.quy) - 1];
+    // console.log(">>> temp", temp);
+    let year = Number(req.body.nam);
+    // console.log(">> begin", new Date(year, temp.begin - 1, 1));
+    // console.log(">> end", new Date(year, temp.end, 0));
+    let begin = new Date(year, temp.begin - 1, 1);
+    let end = new Date(year, temp.end, 0);
+    let tickets = await TicketBooking.find({
+      thoiGianDat: {
+        $gt: begin,
+        $lte: end,
+      },
+    }).sort({ thoiGianDat: 1 });
+
+    res.status(200).json({
+      data: [{ thoiGianDat: begin }, ...tickets, { thoiGianDat: end }],
+    });
   }
 }
 module.exports = new ShowTimeController();
