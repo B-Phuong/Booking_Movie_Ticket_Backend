@@ -2,7 +2,7 @@ require("dotenv").config();
 const Movie = require("../models/Movie");
 const TicketBooking = require("../models/TicketBooking");
 const { removeVietnameseTones } = require("../helper/formatString");
-const { default: isURL } = require("validator/lib/isURL");
+const Comment = require("../models/Comment");
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -22,15 +22,24 @@ class MoviesController {
         path: "lichChieu",
         populate: { path: "tenRap" },
       })
+      .populate("nguoiDanhGia", "tentaiKhoan")
+      .populate("binhLuan")
+      .populate({
+        path: "binhLuan",
+        populate: { path: "maNguoiBinhLuan" },
+      })
+      .sort({ createdAt: 1 })
       .then((data) => {
         // console.log(data);
         if (data.length != 0) res.status(200).json({ data });
         else {
-          res.status(404).json({ error: "Không tìm thấy thông tin phim" });
+          return res
+            .status(404)
+            .json({ error: "Không tìm thấy thông tin phim" });
         } //res.status(404).json('Không tìm thấy thông tin phim')
       })
       .catch((err) => {
-        res.status(500).json({ error: "Không tìm thấy thông tin phim" });
+        return res.status(500).json({ error: "Không tìm thấy thông tin phim" });
       });
   }
   //[GET]
@@ -314,6 +323,55 @@ class MoviesController {
     const ticket = await TicketBooking.find({}).populate("maLichChieu");
     res.json(ticket);
     ticket.find({ "maLichChieu.ngayChieu": { $gt: "maLichChieu.ngayChieu" } });
+  }
+
+  async rating(req, res) {
+    const biDanh = req.params.bidanh;
+    const { danhGia } = req.body;
+    const nguoiDanhGia = req.user;
+    const movie = await Movie.findOne({ biDanh: biDanh });
+    if (movie.nguoiDanhGia == undefined) movie.nguoiDanhGia = [];
+    if (movie.danhGia == undefined) movie.danhGia = 0;
+    let isRated = movie.nguoiDanhGia.find((item) => item == nguoiDanhGia);
+    if (isRated) {
+      return res.status(400).json({ error: "Người dùng đã đánh giá rồi" });
+    }
+    let listUsers = movie.nguoiDanhGia;
+    movie.nguoiDanhGia = [...listUsers, nguoiDanhGia];
+    let count = movie.nguoiDanhGia.length;
+    let rating = ((movie.danhGia + Number(danhGia)) / count).toFixed(2);
+    movie.danhGia = Number(rating);
+    let isSaved = await movie.save();
+    if (isSaved) {
+      return res.status(200).json({ data: movie });
+    }
+    return res.status(400).json({ error: "Vui lòng thử lại" });
+  }
+
+  async comment(req, res) {
+    const biDanh = req.params.bidanh;
+    const { noiDung } = req.body;
+    const nguoiBinhLuan = req.user;
+    let comment = new Comment({});
+    comment.noiDung = noiDung;
+    comment.maNguoiBinhLuan = nguoiBinhLuan;
+    var idComment = comment._id;
+    // console.log(">> comment", comment);
+    let isCommentSaved = await comment.save();
+    // console.log(">> isCommentSaved", isCommentSaved);
+    if (isCommentSaved) {
+      const movie = await Movie.findOne({ biDanh: biDanh });
+      let comments = movie.binhLuan;
+      movie.binhLuan = [...comments, idComment];
+      console.log(">> if");
+      let isSaved = await movie.save();
+      if (isSaved) {
+        return res.status(200).json({ data: movie });
+      } else {
+        const delComment = await Comment.findByIdAndDelete(idComment);
+        return res.status(400).json({ error: "Vui lòng thử lại x" });
+      }
+    } else return res.status(400).json({ error: "Vui lòng thử lại" });
   }
 }
 module.exports = new MoviesController();
