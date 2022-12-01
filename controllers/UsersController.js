@@ -33,7 +33,8 @@ class UsersController {
       ...req.body,
     };
     if (req.body.SDT && req.body.hoTen && req.body.email) {
-      if (req.files.anhDaiDien != undefined) {
+      // console.log(">> req.file.path", req.file)
+      if (req.file != undefined) {
         try {
           const fileStr = req.file.path;
           const uploadResponse = await cloudinary.uploader.upload(fileStr, {
@@ -44,8 +45,8 @@ class UsersController {
           userUpdate.maHinhAnh = uploadResponse.public_id;
           userInfo.maHinhAnh
             ? cloudinary.uploader.destroy(userInfo.maHinhAnh, {
-                type: "upload",
-              })
+              type: "upload",
+            })
             : "";
         } catch (err) {
           return res.status(500).json({ error: "Cập nhật thất bại" });

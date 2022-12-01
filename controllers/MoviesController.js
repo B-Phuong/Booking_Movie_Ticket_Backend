@@ -299,7 +299,7 @@ class MoviesController {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
   //[GET] topMoives
   top10Movies(req, res) {
@@ -340,6 +340,7 @@ class MoviesController {
     movie.nguoiDanhGia = [...listUsers, nguoiDanhGia];
     let count = movie.nguoiDanhGia.length;
     let rating = ((movie.danhGia + Number(danhGia)) / count).toFixed(2);
+    //console.log(">> fix star", rating);
     movie.danhGia = Number(rating);
     let isSaved = await movie.save();
     if (isSaved) {
