@@ -5,7 +5,7 @@ require('dotenv').config()
 
 const User = new Schema({
   tentaiKhoan: { type: String, maxlength: 80, unique: true, trim: true, required: [true, 'Hãy nhập tên đăng nhập'] },
-  matKhau: { type: String, minlength: [6, 'Mật khẩu tối thiểu 6 ký tự'], trim: true, required: [true, 'Bạn chưa nhập mật khẩu'] },
+  matKhau: { type: String, minlength: [6, 'Mật khẩu tối thiểu 6 ký tự'], trim: true, required: [true, 'Bạn chưa nhập mật khẩu']},
   email: { type: String, unique: true, required: [true, 'Hãy nhập email'], trim: true, lowcase: true, validate: [validator.isEmail, 'Nhập đúng kiểu mail'] },
   hoTen: { type: String },
   SDT: { type: String },

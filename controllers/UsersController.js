@@ -33,21 +33,25 @@ class UsersController {
       ...req.body,
     };
     if (req.body.SDT && req.body.hoTen && req.body.email) {
-      try {
-        const fileStr = req.file.path;
-        const uploadResponse = await cloudinary.uploader.upload(fileStr, {
-          folder: "BookingTicket",
-          use_filename: true,
-        });
-        userUpdate.anhDaiDien = uploadResponse.url;
-        userUpdate.maHinhAnh = uploadResponse.public_id;
-        userInfo.maHinhAnh
-          ? cloudinary.uploader.destroy(userInfo.maHinhAnh, { type: "upload" })
-          : "";
-      } catch (err) {
-        return res.status(500).json({ error: "Cập nhật thất bại" });
+      // console.log(">> req.file.path", req.file)
+      if (req.file != undefined) {
+        try {
+          const fileStr = req.file.path;
+          const uploadResponse = await cloudinary.uploader.upload(fileStr, {
+            folder: "BookingTicket",
+            use_filename: true,
+          });
+          userUpdate.anhDaiDien = uploadResponse.url;
+          userUpdate.maHinhAnh = uploadResponse.public_id;
+          userInfo.maHinhAnh
+            ? cloudinary.uploader.destroy(userInfo.maHinhAnh, {
+              type: "upload",
+            })
+            : "";
+        } catch (err) {
+          return res.status(500).json({ error: "Cập nhật thất bại" });
+        }
       }
-
       User.findByIdAndUpdate(req.user, userUpdate)
         .then(() => {
           res.status(200).json({

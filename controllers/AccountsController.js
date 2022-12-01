@@ -16,6 +16,7 @@ class AccountsController {
             "user",
             { expiresIn: "1h" }
           );
+          const user = jwt.verify(token, "user");
           res.cookie("token", token);
           return res.status(200).json({
             data: {
@@ -23,7 +24,7 @@ class AccountsController {
               tentaiKhoan: data.tentaiKhoan,
             },
             token: token,
-            expiresIn: 3600, //đơn vị là giây
+            expiresIn: user.exp,
           });
         } else {
           res
