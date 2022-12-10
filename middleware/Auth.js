@@ -26,7 +26,10 @@ class Auth {
     }
   }
   checkAdmin(req, res, next) {
-    if (req.data.maLoaiNguoiDung == "0") next();
+    if (req.data.maLoaiNguoiDung == "0") {
+      req.user = req.data._id;
+      next()
+    }
     else {
       res.status(403).json({ error: "Không có quyền truy cập chức năng này" });
     }

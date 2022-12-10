@@ -61,7 +61,7 @@ class ShowTimeController {
       await movie.lichChieu.forEach(async (st) => {
         if (
           st.ngayChieu.toLocaleString("en-AU") ==
-            showtime.ngayChieu.toLocaleString("en-AU") &&
+          showtime.ngayChieu.toLocaleString("en-AU") &&
           st.tenCumRap === showtime.tenCumRap
         ) {
           // console.log('id rạp trùng', st.tenCumRap, showtime.tenCumRap)
@@ -199,6 +199,7 @@ class ShowTimeController {
       tentaiKhoan: req.user,
       phim: movie._id,
       tienThanhToan: total,
+      diemSuDung: usedPoint,
     });
     booking
       .save()
@@ -241,7 +242,7 @@ class ShowTimeController {
                             ((showtime.giaVe * numberOfSeat -
                               usedPoint * 1000) /
                               1000) *
-                              0.05
+                            0.05
                           );
                         // console.log('data.diemThuong', data.diemThuong)
                         // console.log(`>>request ${req.body.soThuTu} THÀNH CÔNG, kết thúc lúc`, new Date())
@@ -277,7 +278,8 @@ class ShowTimeController {
   async getAllTicketBookings(req, res) {
     let tickets = await TicketBooking.find()
       .populate("maLichChieu")
-      .sort({ "maLichChieu.ngayChieu": 1 });
+      .sort({ "maLichChieu.ngayChieu": 1 })
+      .populate("tentaiKhoan", "tentaiKhoan");
     // console.log(">> tickets", tickets);
     return res.status(200).json({ data: tickets });
   }
@@ -377,6 +379,76 @@ class ShowTimeController {
     res.status(200).json({
       data: [{ thoiGianDat: begin }, ...tickets, { thoiGianDat: end }],
     });
+  }
+
+  async theaterRevenue(req, res) {
+    let tickets = await TicketBooking.find()
+      .populate("maLichChieu")
+      .sort({ "maLichChieu.ngayChieu": 1 })
+      .populate({
+        path: "maLichChieu",
+        populate: { path: "tenCumRap" },
+      })
+    let sum = function (items, prop) {
+      return items.reduce(function (a, b) {
+        return a + b[prop];
+      }, 0);
+    };
+    let revenueByTheater = []
+    let theaters = await Movietheater.find({})
+    theaters.forEach((theater) => {
+      let filterByTheater = tickets.filter((item) => item.maLichChieu.tenCumRap.tenCumRap === theater.tenCumRap)
+      // console.log(">> theater", theater)
+      let total = sum(filterByTheater, 'tienThanhToan')
+      // console.log(">> total", total)
+      revenueByTheater.push({ theaterName: theater.tenCumRap, total })
+    })
+
+    // console.log(">> tickets", tickets);
+    return res.status(200).json({ data: revenueByTheater });
+  }
+
+  async timelineChart(req, res) {
+    let tickets = await TicketBooking.find()
+      .populate("maLichChieu", "ngayChieu")
+      .sort({ "maLichChieu.ngayChieu": 1 })
+    let morning = [{
+      start: '5',
+      end: '11'
+    }]
+    let afternoon = [{
+      start: '12',
+      end: '16'
+    }]
+    let evening = [{
+      start: '17',
+      end: '20'
+    }]
+    let night = [{
+      start: '21',
+      end: '24'
+    }]
+    let count = {
+      morning: 0,
+      afternoon: 0,
+      evening: 0,
+      night: 0
+    }
+    tickets.forEach((ticket) => {
+      let hr = new Date(ticket.maLichChieu.ngayChieu).getHours();
+      if (hr >= 5 && hr < 12) {
+        count["morning"] += 1
+      } else if (hr >= 12 && hr < 17) {
+        count["afternoon"] += 1
+      } else if (hr >= 17 && hr <= 21) {
+        count["evening"] += 1
+      } else {
+        count["night"] += 1
+      }
+    })
+
+    // console.log(">> count", count);
+    return res.status(200).json({ data: count });
   }
 }
 module.exports = new ShowTimeController();

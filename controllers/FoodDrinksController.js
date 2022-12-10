@@ -118,5 +118,18 @@ class FoodDrinksController {
     });
     return res.status(200).json({ data: detail });
   }
+
+  async delete(req, res) {
+    FoodsAndDrinks.findOneAndUpdate({ biDanh: req.params.bidanh }, { daXoa: true })
+      .then((data) => {
+        res.status(200).json({ message: "Xóa thành công", data });
+      })
+      .catch((err) => {
+        console.log(err)
+        res
+          .status(500)
+          .json({ message: "Hệ thống đang xử lý, vui lòng chờ" });
+      });
+  }
 }
 module.exports = new FoodDrinksController();

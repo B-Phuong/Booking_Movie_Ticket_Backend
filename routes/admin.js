@@ -146,6 +146,13 @@ router.put(
   FoodDrinksController.update
 );
 
+router.delete(
+  "/food_drink/:bidanh",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  FoodDrinksController.delete
+);
+
 router.get(
   "/goodSales",
   Auth.checkPermission,
@@ -166,5 +173,23 @@ router.post(
   Auth.checkAdmin,
   showtimeController.quarterlyRevenue
 );
+
+router.get(
+  "/revenueByTheater",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  showtimeController.theaterRevenue
+);
+
+router.get(
+  "/timelineChart",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  showtimeController.timelineChart
+);
+router.get("/",
+  Auth.checkPermission,
+  Auth.checkAdmin,
+  userController.info);
 
 module.exports = router;

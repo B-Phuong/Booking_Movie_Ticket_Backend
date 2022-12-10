@@ -87,7 +87,10 @@ router.post(
   Auth.checkUser,
   emailServices.sendchangeTicketMail
 );
-router.get("/", Auth.checkPermission, Auth.checkUser, userController.info);
+router.get("/",
+  Auth.checkPermission,
+  Auth.checkUser,
+  userController.info);
 router.put(
   "/",
   Auth.checkPermission,
