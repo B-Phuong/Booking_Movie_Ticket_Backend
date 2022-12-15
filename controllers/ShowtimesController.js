@@ -7,16 +7,17 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../services/emailServices");
 const emailServices = require("../services/emailServices");
 const User = require("../models/User");
+const Showtime = require("../models/Showtime");
 
 class ShowTimeController {
-  formatDate = (date) => {
+  formatDate(date) {
     if (date) {
       const d = new Date(date); //d.toLocaleString("en-AU")//
       return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
     }
     return "";
   };
-  formatTime = (date) => {
+  formatTime(date) {
     if (date) {
       const d = new Date(date); //d.toLocaleString("en-AU")//
       const time = d.toLocaleString("en-AU", {
@@ -54,7 +55,7 @@ class ShowTimeController {
         .status(400)
         .json({ error: "Không thể tạo ngày chiếu sớm hơn ngày khởi chiếu" });
     else {
-      const availableShowtime = await ShowTime.find({
+      const listStByTheaterAndRoom = await ShowTime.find({
         tenRap: showtime.tenRap,
         tenCumRap: showtime.tenCumRap,
       });
@@ -77,7 +78,7 @@ class ShowTimeController {
           error: "Giờ tạo lịch chiếu phải lớn hơn thời gian hiện tại",
         });
       var count = 0;
-      availableShowtime.forEach((st) => {
+      listStByTheaterAndRoom.forEach((st) => {
         if (
           st.ngayChieu <= showtime.ngayChieu &&
           st.gioKetThuc >= showtime.ngayChieu
@@ -449,6 +450,123 @@ class ShowTimeController {
 
     // console.log(">> count", count);
     return res.status(200).json({ data: count });
+  }
+
+  async addListShowtimes(req, res) {
+    // console.log(">> req.body", req.body)
+    const checkSameValueInList = (st, err) => {
+      let showtime = listFailed.find((item) => item.showtime == st)
+      if (showtime == undefined)
+        listFailed.push({ showtime: st, error: err })
+    }
+    var listShowtimes = req.body
+    var listFailed = []
+    var listValid = []
+    const requests = listShowtimes.map(async (item) => {
+      var ngaychieu = new Date(item.ngayChieu);
+
+      var showtime = new ShowTime({
+        ngayChieu: ngaychieu,
+        tenRap: item.tenRap,
+        tenCumRap: item.tenCumRap,
+        giaVe: item.giaVe,
+        gioKetThuc: new Date(item.ngayChieu),
+      });
+      const movie = await Movie.findOne({ biDanh: req.params.bidanh }).populate(
+        "lichChieu"
+      ); //
+      const showtimeOfMovie = await Movie.findOne({ biDanh: req.params.bidanh }) //
+      if (movie) {
+        const hour = ngaychieu.getHours() + movie.thoiLuong / 60; //
+        const minute = ngaychieu.getMinutes() + (movie.thoiLuong % 60); //
+        showtime.gioKetThuc.setHours(hour);
+        showtime.gioKetThuc.setMinutes(minute);
+        console.log(">> showtime", showtime)
+      }
+      if (movie.ngayKhoiChieu > ngaychieu)
+        return checkSameValueInList(item, "Không thể tạo ngày chiếu sớm hơn ngày khởi chiếu")  //listFailed.push({ showtime: item, error: "Không thể tạo ngày chiếu sớm hơn ngày khởi chiếu" })
+      else {
+        const listStByTheaterAndRoom = await ShowTime.find({
+          tenRap: showtime.tenRap,
+          tenCumRap: showtime.tenCumRap,
+        });
+        await movie.lichChieu.forEach(async (st) => {
+          if (
+            st.ngayChieu.toLocaleString("en-AU") ==
+            showtime.ngayChieu.toLocaleString("en-AU") &&
+            st.tenCumRap === showtime.tenCumRap
+          ) {
+            console.log("-- error Một rạp khác trong cụm rạp có phim trùng")
+            return checkSameValueInList(item, "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác") // listFailed.push({ showtime: item, error: "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác" })
+          }
+        });
+        var count = 0;
+        await listStByTheaterAndRoom.forEach((st) => {
+          if (
+            (Date(st.ngayChieu) >= Date(showtime.gioKetThuc) ||
+              Date(st.gioKetThuc) <= Date(showtime.ngayChieu)) && showtimeOfMovie.lichChieu.includes(st._id)
+          ) {
+            count++;
+            console.log("-- error Vui lòng chọn sau")
+            const d = new Date(st.gioKetThuc); //d.toLocaleString("en-AU")//
+            let time = d.getHours() + ":" + d.getMinutes()
+            return checkSameValueInList(item, `Vui lòng chọn sau ${time}`)// listFailed.push({ showtime: item, error: `Vui lòng chọn sau ${st.gioKetThuc}` })
+          }
+        });
+        if (count == 0) {
+          return listValid.push(showtime)
+        }
+      }
+    })
+    Promise.all(requests).then(async () => {
+      // console.log(">> listValid", listValid)
+      await Showtime.insertMany(listValid)
+      let listNewIDs = []
+
+      listValid.length > 0 && listValid.forEach(async (st) => {
+        const newShowtime = await st.save();
+        if (newShowtime) {
+          listNewIDs.push(newShowtime._id)
+          console.log(">> listNewIDs", ...listNewIDs)
+        }
+        else {
+          return res.status(400).json({ error: "Không thể tạo lịch chiếu cho phim" });
+        }
+      })
+      const addShowtimeToMovie = await Movie.findOne({
+        biDanh: req.params.bidanh,
+      });
+
+      let LichChieu = addShowtimeToMovie.lichChieu;
+      if (listValid.length > 0) {
+        addShowtimeToMovie.lichChieu = [...LichChieu, ...listNewIDs];
+        let Successful = await addShowtimeToMovie.save();
+        console.log(">> lichChieu", addShowtimeToMovie.lichChieu)
+        if (Successful && listFailed.length == 0)
+          res.status(201).json({
+            message: "Tạo lịch chiếu thành công",
+            data: [],
+          });
+        else if (Successful && listFailed.length > 0)
+          res.status(400).json({
+            error: `Tạo thất bại ${listFailed.length}/${listShowtimes.length} lịch chiếu`,
+            data: listFailed,
+          });
+        else {
+          listFailed.push(st)
+          return res.status(400).json({ data: listFailed, error: "Tạo lịch chiếu thất bại" });
+        }
+      }
+      else {
+
+        return res.status(400).json({ data: listFailed, error: "Tạo lịch chiếu thất bại" });
+      }
+      // const Successful = await addShowtimeToMovie.save();
+
+    })
+
+    // const newShowtime = await showtime.save();
+    // if (successfulAdd) 
   }
 }
 module.exports = new ShowTimeController();

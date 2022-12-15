@@ -32,7 +32,7 @@ router.post(
   Auth.checkAdmin,
   // validationShowTime,
   // isRequestValidated,
-  showtimeController.add
+  showtimeController.addListShowtimes//add
 );
 router.delete(
   "/movie/:bidanh/showtime",
@@ -134,8 +134,8 @@ router.post(
   Auth.checkPermission,
   Auth.checkAdmin,
   upload.single("hinhAnh"),
-  validationFoodsAndDrinks,
-  isRequestValidated,
+  // validationFoodsAndDrinks,
+  // isRequestValidated,
   FoodDrinksController.add
 );
 router.put(

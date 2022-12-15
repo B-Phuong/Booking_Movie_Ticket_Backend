@@ -44,6 +44,7 @@ class FoodDrinksController {
       newCombo.biDanh = slug;
     }
     //console.log("-----Combo:", newCombo)
+    console.log(">> newCombo", newCombo)
     try {
       const fileStr = req.file.path;
       const uploadResponse = await cloudinary.uploader.upload(fileStr, {
@@ -59,6 +60,7 @@ class FoodDrinksController {
         .status(201)
         .json({ message: "Thêm combo thành công", data: newCombo });
     } catch (err) {
+      console.log(">> err", err)
       res.status(500).json({ error: "Thêm combo thất bại" });
     }
   }
