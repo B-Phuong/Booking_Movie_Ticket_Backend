@@ -12,6 +12,9 @@ cloudinary.config({
 class MoviesController {
   //[GET] /movie/:bidanh
   showDetail(req, res) {
+    // setTimeout(() => {
+    //   return res.status(500).json({ error: "Yêu cầu tốn quá nhiều thời gian" })
+    // }, 500)
     Movie.find({ biDanh: req.params.biDanh })
       .populate("lichChieu")
       .populate({
@@ -20,7 +23,7 @@ class MoviesController {
       })
       .populate({
         path: "lichChieu",
-        populate: { path: "tenRap" },
+        populate: { path: "tenRap", select: '_id tenRap' },
       })
       .populate("nguoiDanhGia", "tentaiKhoan")
       .populate("binhLuan")
@@ -41,6 +44,7 @@ class MoviesController {
       .catch((err) => {
         return res.status(500).json({ error: "Không tìm thấy thông tin phim" });
       });
+
   }
   //[GET]
   show(req, res) {
@@ -163,7 +167,7 @@ class MoviesController {
       try {
         const image = req.files.hinhAnh[0].path;
         const uploadImageResponse = await cloudinary.uploader.upload(image, {
-          folder: "BookingTicket",
+          folder: "BookingTicket/Images",
           use_filename: true,
         });
         movieUpdate.hinhAnh = uploadImageResponse.url;
@@ -177,7 +181,7 @@ class MoviesController {
       try {
         const banner = req.files.anhBia[0].path;
         const uploadBannerResponse = await cloudinary.uploader.upload(banner, {
-          folder: "BookingTicket",
+          folder: "BookingTicket/Banners",
           use_filename: true,
         });
         movieUpdate.anhBia = uploadBannerResponse.url;
@@ -280,13 +284,13 @@ class MoviesController {
             const banner = req.files.anhBia[0].path;
             const uploadImageResponse = await cloudinary.uploader.upload(
               image,
-              { folder: "BookingTicket", use_filename: true }
+              { folder: "BookingTicket/Images", use_filename: true }
             );
             movie.hinhAnh = uploadImageResponse.url;
             movie.maHinhAnh = uploadImageResponse.public_id;
             const uploadBannerResponse = await cloudinary.uploader.upload(
               banner,
-              { folder: "BookingTicket", use_filename: true }
+              { folder: "BookingTicket/Banners", use_filename: true }
             );
             movie.anhBia = uploadBannerResponse.url;
             movie.maAnhBia = uploadBannerResponse.public_id;

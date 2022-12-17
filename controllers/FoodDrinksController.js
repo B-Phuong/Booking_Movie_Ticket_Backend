@@ -48,7 +48,7 @@ class FoodDrinksController {
     try {
       const fileStr = req.file.path;
       const uploadResponse = await cloudinary.uploader.upload(fileStr, {
-        folder: "BookingTicket",
+        folder: "BookingTicket/FoodImages",
         use_filename: true,
       });
       // console.log("-----uploadResponse", uploadResponse)
@@ -80,7 +80,7 @@ class FoodDrinksController {
         try {
           const fileStr = req.file.path;
           const uploadResponse = await cloudinary.uploader.upload(fileStr, {
-            folder: "BookingTicket",
+            folder: "BookingTicket/FoodImages",
             use_filename: true,
           });
           // console.log(uploadResponse);

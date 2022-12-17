@@ -6,10 +6,11 @@ const route = require('./routes');
 const db = require('./config/database');
 const cors = require("cors");
 //const shortid = require("shortid");
-
+var timeout = require('express-timeout-handler');
 
 //To prevent CORS errors
 app.use(cors());
+
 //Connect to DB
 db.connect();
 //Thêm vô để sửa lỗi strict-origin-when-cross-origin
@@ -30,9 +31,26 @@ app.use(express.static('public'));
 app.use(express.urlencoded({
   extended: true
 }));
+
+var options = {
+
+  // Optional. This will be the default timeout for all endpoints.
+  // If omitted there is no default timeout on endpoints
+  timeout: 8000,
+
+  // Optional. This function will be called on a timeout and it MUST
+  // terminate the request.
+  // If omitted the module will end the request with a default 503 error.
+  onTimeout: (req, res) => {
+    return res.status(503).json({ error: 'Không nhận được phản hồi, vui lòng thử lại' });
+  },
+  // disable: ['write', 'setHeaders', 'send', 'json', 'end']
+};
+
+app.use(timeout.handler(options));
+
+
 app.use(express.json());
-
-
 
 
 //định vị đường cho layout, trong đó dirname là thư mục chứ file index do ban đầu main: src/index.js
@@ -41,6 +59,6 @@ app.use(express.json());
 route(app);
 
 //localhost 127.0.0.1
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`)
 })

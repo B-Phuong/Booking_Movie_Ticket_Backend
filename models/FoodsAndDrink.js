@@ -8,8 +8,8 @@ const FoodsAndDrink = new Schema({
     hinhAnh: { type: String },
     maHinhAnh: { type: String },
     giaGoc: { type: Number },
-    giamGia: { type: Number, default: "0" },
-    soLuongBan: { type: Number, default: "0" },
+    giamGia: { type: Number, default: 0 },
+    soLuongBan: { type: Number, default: 0 },
     daXoa: { type: Boolean, default: "false" }
 }, { timestamps: true })
 module.exports = mongoose.model('FoodsAndDrink', FoodsAndDrink);

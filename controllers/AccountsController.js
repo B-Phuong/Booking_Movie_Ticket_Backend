@@ -29,7 +29,7 @@ class AccountsController {
         } else {
           res
             .status(404)
-            .json({ error: "Tên tài khoản hoặc mật khẩu chưa hợp lệ" });
+            .json({ error: "Tên tài khoản hoặc mật khẩu chưa chính xác" });
         }
       })
       .catch((err) => {
