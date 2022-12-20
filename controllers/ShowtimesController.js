@@ -398,7 +398,7 @@ class ShowTimeController {
     let revenueByTheater = []
     let theaters = await Movietheater.find({})
     theaters.forEach((theater) => {
-      let filterByTheater = tickets.filter((item) => item.maLichChieu.tenCumRap.tenCumRap === theater.tenCumRap)
+      let filterByTheater = tickets.filter((item) => item.maLichChieu?.tenCumRap?.tenCumRap === theater.tenCumRap)
       // console.log(">> theater", theater)
       let total = sum(filterByTheater, 'tienThanhToan')
       // console.log(">> total", total)
@@ -436,7 +436,7 @@ class ShowTimeController {
       night: 0
     }
     tickets.forEach((ticket) => {
-      let hr = new Date(ticket.maLichChieu.ngayChieu).getHours();
+      let hr = new Date(ticket?.maLichChieu?.ngayChieu).getHours();
       if (hr >= 5 && hr < 12) {
         count["morning"] += 1
       } else if (hr >= 12 && hr < 17) {
@@ -458,6 +458,9 @@ class ShowTimeController {
       let showtime = listFailed.find((item) => item.showtime == st)
       if (showtime == undefined)
         listFailed.push({ showtime: st, error: err })
+    }
+    const getTime = (datetime) => {
+      return new Date(datetime).getTime()
     }
     var listShowtimes = req.body
     var listFailed = []
@@ -481,7 +484,7 @@ class ShowTimeController {
         const minute = ngaychieu.getMinutes() + (movie.thoiLuong % 60); //
         showtime.gioKetThuc.setHours(hour);
         showtime.gioKetThuc.setMinutes(minute);
-        console.log(">> showtime", showtime)
+        // Y
       }
       if (movie.ngayKhoiChieu > ngaychieu)
         return checkSameValueInList(item, "Không thể tạo ngày chiếu sớm hơn ngày khởi chiếu")  //listFailed.push({ showtime: item, error: "Không thể tạo ngày chiếu sớm hơn ngày khởi chiếu" })
@@ -502,9 +505,9 @@ class ShowTimeController {
         });
         var count = 0;
         await listStByTheaterAndRoom.forEach((st) => {
-          if (
-            (Date(st.ngayChieu) >= Date(showtime.gioKetThuc) ||
-              Date(st.gioKetThuc) <= Date(showtime.ngayChieu)) && showtimeOfMovie.lichChieu.includes(st._id)
+          if (showtimeOfMovie.lichChieu.includes(st._id) &&
+            (getTime(st.ngayChieu) < getTime(showtime.gioKetThuc) && getTime(showtime.gioKetThuc) < getTime(st.gioKetThuc) ||
+              getTime(st.ngayChieu) < getTime(showtime.ngayChieu) && getTime(showtime.ngayChieu) < getTime(st.gioKetThuc))
           ) {
             count++;
             console.log("-- error Vui lòng chọn sau")
@@ -519,26 +522,18 @@ class ShowTimeController {
       }
     })
     Promise.all(requests).then(async () => {
-      // console.log(">> listValid", listValid)
       await Showtime.insertMany(listValid)
       let listNewIDs = []
-
-      listValid.length > 0 && listValid.forEach(async (st) => {
-        const newShowtime = await st.save();
-        if (newShowtime) {
-          listNewIDs.push(newShowtime._id)
-          console.log(">> listNewIDs", ...listNewIDs)
-        }
-        else {
-          return res.status(400).json({ error: "Không thể tạo lịch chiếu cho phim" });
-        }
+      listValid.forEach(async (st) => {
+        listNewIDs.push(st._id);
       })
       const addShowtimeToMovie = await Movie.findOne({
         biDanh: req.params.bidanh,
       });
 
-      let LichChieu = addShowtimeToMovie.lichChieu;
-      if (listValid.length > 0) {
+      let LichChieu = addShowtimeToMovie?.lichChieu;
+      if (listValid.length > 0 && listNewIDs.length == listValid.length) {//
+        console.log(">> listNewIDs", listNewIDs)
         addShowtimeToMovie.lichChieu = [...LichChieu, ...listNewIDs];
         let Successful = await addShowtimeToMovie.save();
         console.log(">> lichChieu", addShowtimeToMovie.lichChieu)
@@ -553,12 +548,11 @@ class ShowTimeController {
             data: listFailed,
           });
         else {
-          listFailed.push(st)
+
           return res.status(400).json({ data: listFailed, error: "Tạo lịch chiếu thất bại" });
         }
       }
       else {
-
         return res.status(400).json({ data: listFailed, error: "Tạo lịch chiếu thất bại" });
       }
       // const Successful = await addShowtimeToMovie.save();
