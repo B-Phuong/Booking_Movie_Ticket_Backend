@@ -7,6 +7,7 @@ const db = require('./config/database');
 const cors = require("cors");
 //const shortid = require("shortid");
 var timeout = require('express-timeout-handler');
+const emailServices = require('./services/emailServices');
 
 //To prevent CORS errors
 app.use(cors());
@@ -62,3 +63,4 @@ route(app);
 const server = app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`)
 })
+emailServices.sendReminderMail();

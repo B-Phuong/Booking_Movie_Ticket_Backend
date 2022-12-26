@@ -53,35 +53,6 @@ class emailService {
 
   async sendReminderMail(req, res) {
     let ticketToday = [];
-    // const dateNow = new Date()
-    await TicketBooking.find({})
-      .populate("maLichChieu")
-      .populate("tentaiKhoan")
-      .populate("phim")
-      .then((data) => {
-        if (data) {
-          data.forEach((ticket) => {
-            console.log(ticket.maLichChieu)
-            if (!ticket?.maLichChieu?.ngayChieu) {
-              console.log("ticket nay bi null:", ticket._id)
-              return;
-            }
-
-            const date = new Date(ticket.maLichChieu.ngayChieu);
-            //  console.log('Ngày chiếu', ticket.maLichChieu.ngayChieu.getDate())
-            const dateNow = new Date();
-            // ('Ngày hiện tại', dateNow.getHours(), dateNow.getMinutes())
-            if (
-              date.getDate() === dateNow.getDate() &&
-              date.getMonth() === dateNow.getMonth() &&
-              date.getFullYear() === dateNow.getFullYear()
-            ) {
-              ticketToday.push(ticket);
-            }
-          });
-        }
-      })
-      .catch((err) => res.status(500).json(err.toString()));
     const formatDate = (date) => {
       if (date) {
         const d = new Date(date); //d.toLocaleString("en-AU")//
@@ -100,8 +71,36 @@ class emailService {
       }
       return "";
     };
-    cron.schedule("27 8 * * *", () => {
+    cron.schedule("*/5 * * * *", async () => {
       //
+      let ticketToday = [];
+      await TicketBooking.find({})
+        .populate("maLichChieu")
+        .populate("tentaiKhoan")
+        .populate("phim")
+        .then((data) => {
+          if (data) {
+            data.forEach((ticket) => {
+              // console.log(ticket.maLichChieu)
+              if (!ticket?.maLichChieu?.ngayChieu) {
+                // console.log("ticket nay bi null:", ticket._id)
+                return;
+              }
+              const date = new Date(ticket.maLichChieu.ngayChieu).getTime();
+              //  console.log('Ngày chiếu', ticket.maLichChieu.ngayChieu.getDate())
+              const dateNow = new Date().getTime();
+              // console.log(">> datenow", dateNow)
+              // console.log(">> getdDate", date)
+              // console.log(">> getdDate - datenoew", getdDate - dateNow)
+              // console.log(">> 1 hour", 60 * 60 * 1000)
+              if (date - dateNow >= 60 * 59 * 1000 && date - dateNow <= 60 * 60 * 1000) {
+                ticketToday.push(ticket);
+                //console.log(">> log", ticketToday)
+              }
+            });
+          }
+        })
+        .catch((err) => console.log(err.toString()));
       ticketToday.forEach(async (ticket) => {
         //console.log('ticket', ticket)
         let transporter = nodemailer.createTransport({
@@ -133,8 +132,8 @@ class emailService {
                             <p>Vui lòng lưu lại mã QR ở mail đặt vé trước đó để tiện cho việc soát vé ở rạp</p>                  
                             <p>Trân trọng,<br />CGV team</p>`,
         });
-        if (info) res.status(200).json({ message: "Đã gửi email" });
-        else res.status(400).json({ error: "Gửi email thất bại" });
+        // if (info) res.status(200).json({ message: "Đã gửi email" });
+        // else res.status(400).json({ error: "Gửi email thất bại" });
       });
       //
     });

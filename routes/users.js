@@ -80,7 +80,10 @@ router.post(
   Auth.checkUser,
   emailServices.sendEmail
 );
-router.get("/reminderEmail", emailServices.sendReminderMail);
+router.get("/reminderEmail", (req, res) => res.status(200).json({
+  data: null,
+  message: "Gửi mail thành công",
+}));
 router.post(
   "/sendchangeTicketMail",
   Auth.checkPermission,
