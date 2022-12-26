@@ -26,6 +26,7 @@ Chuẩn bị các biến môi trường như sau:
 |CLOUDINARY_API_KEY|
 |CLOUDINARY_API_SECRET|
 |AVATAR_DEFAULT_URL| Địa chỉ của avatar mặc định trên cloudinary|
+|ENVIRONMENT| Môi trường DEV hoăc PROD|
 
 ***Bước 3***:
 
