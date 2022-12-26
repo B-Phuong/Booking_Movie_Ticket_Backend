@@ -6,7 +6,7 @@ const TicketBooking = require("../models/TicketBooking");
 require("dotenv").config();
 
 const mailerOptions = {
-  port: process.env.ENVIRONMENT == "PROD" ? 465 : 578,
+  port: process.env.ENVIRONMENT == "PROD" ? 465 : 587,
   secure: process.env.ENVIRONMENT == "PROD",
 }
 
