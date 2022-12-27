@@ -90,6 +90,13 @@ router.post(
   Auth.checkUser,
   emailServices.sendchangeTicketMail
 );
+router.post(
+  "/preorder",
+  Auth.checkPermission,
+  Auth.checkUser,
+  showtimeController.pushSlotsPreOrder
+);
+
 router.get("/",
   Auth.checkPermission,
   Auth.checkUser,

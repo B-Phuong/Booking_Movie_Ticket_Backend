@@ -8,6 +8,7 @@ const sendEmail = require("../services/emailServices");
 const emailServices = require("../services/emailServices");
 const User = require("../models/User");
 const Showtime = require("../models/Showtime");
+const PreOrder = require("../models/PreOrder");
 
 class ShowTimeController {
   formatDate(date) {
@@ -328,7 +329,7 @@ class ShowTimeController {
                   data,
                 });
               else {
-                console.log(">> failed");
+                // console.log(">> failed");
                 return res
                   .status(400)
                   .json({ error: "Xóa lịch chiếu thất bại" });
@@ -561,6 +562,43 @@ class ShowTimeController {
 
     // const newShowtime = await showtime.save();
     // if (successfulAdd) 
+  }
+
+  async pushSlotsPreOrder(req, res) {
+    const { gheDaChon, maLichChieu } = req.body
+    let checkSameValue = await PreOrder.findOne({ maLichChieu: maLichChieu, gheDaChon: { $in: gheDaChon } }) //
+    // console.log(">> check", checkSameValue)
+    if (checkSameValue != null)
+      return res.status(400).json({ error: "Ghế này hiện không khả dụng" })
+    const preOrder = new PreOrder()
+    preOrder.maLichChieu = maLichChieu
+    preOrder.gheDaChon = gheDaChon
+    let result = await preOrder.save()
+    let showtime = await Showtime.findById(maLichChieu)
+    let orginalSlots = showtime.gheDaChon
+    if (result) {
+      showtime.gheDaChon = [...orginalSlots, ...gheDaChon]
+      showtime.save()
+        .then(() => {
+          setTimeout(async () => {
+            await PreOrder.findOneAndDelete({ _id: preOrder._id })
+            let updateShowtime = await Showtime.findById(maLichChieu)
+            let currentSlots = updateShowtime.gheDaChon
+            gheDaChon.forEach((chair) => {
+              var index = currentSlots.findIndex((element) => element == chair);
+              if (index !== -1) {
+                // console.log(">> ghế đã chọn", chair)
+                let newArray = currentSlots.splice(index, 1);
+                // console.log(">> new Array", newArray, currentSlots)
+                updateShowtime.gheDaChon = currentSlots
+              }
+            })
+            await updateShowtime.save()
+          }, 2 * 60 * 1000)
+          return res.status(200).json("Lưu thành công!")
+        })
+        .catch((error) => { return res.status(400).json("Lưu thất bại!") })
+    }
   }
 }
 module.exports = new ShowTimeController();
