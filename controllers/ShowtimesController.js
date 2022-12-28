@@ -565,32 +565,38 @@ class ShowTimeController {
   }
 
   async pushSlotsPreOrder(req, res) {
-    const { gheDaChon, maLichChieu } = req.body
-    let checkSameValue = await PreOrder.findOne({ maLichChieu: maLichChieu, gheDaChon: { $in: gheDaChon } }) //
+    const { gheDangChon, maLichChieu } = req.body
+    let checkSameValue = await PreOrder.findOne({ maLichChieu: maLichChieu, gheDangChon: { $in: gheDangChon } }) //
     // console.log(">> check", checkSameValue)
-    if (checkSameValue != null)
-      return res.status(400).json({ error: "Ghế này hiện không khả dụng" })
+    if (checkSameValue != null) {
+      let chosenChairs = checkSameValue.gheDangChon
+      const sameChairs = chosenChairs.filter((chair) => {
+        return gheDangChon.indexOf(chair) !== -1;
+      });
+      return res.status(400).json({ error: `${sameChairs} hiện không khả dụng` })
+    }
     const preOrder = new PreOrder()
     preOrder.maLichChieu = maLichChieu
-    preOrder.gheDaChon = gheDaChon
+    preOrder.gheDangChon = gheDangChon
+    preOrder.thoiHan = new Date().setMinutes(new Date().getMinutes() + 2)
     let result = await preOrder.save()
     let showtime = await Showtime.findById(maLichChieu)
-    let orginalSlots = showtime.gheDaChon
+    let orginalSlots = showtime.gheDangChon || []
     if (result) {
-      showtime.gheDaChon = [...orginalSlots, ...gheDaChon]
+      showtime.gheDangChon = [...orginalSlots, ...gheDangChon]
       showtime.save()
         .then(() => {
           setTimeout(async () => {
             await PreOrder.findOneAndDelete({ _id: preOrder._id })
             let updateShowtime = await Showtime.findById(maLichChieu)
-            let currentSlots = updateShowtime.gheDaChon
-            gheDaChon.forEach((chair) => {
+            let currentSlots = updateShowtime.gheDangChon || []
+            gheDangChon.forEach((chair) => {
               var index = currentSlots.findIndex((element) => element == chair);
               if (index !== -1) {
                 // console.log(">> ghế đã chọn", chair)
                 let newArray = currentSlots.splice(index, 1);
                 // console.log(">> new Array", newArray, currentSlots)
-                updateShowtime.gheDaChon = currentSlots
+                updateShowtime.gheDangChon = currentSlots
               }
             })
             await updateShowtime.save()

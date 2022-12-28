@@ -13,6 +13,9 @@ const Showtime = new Schema({
     gheDaChon: {
         type: Array, default: []
     },
+    gheDangChon: {
+        type: Array, default: []
+    },
     giaVe: { type: Number, required: [true] },
 }, { timestamps: true });
 module.exports = mongoose.model('Showtime', Showtime);

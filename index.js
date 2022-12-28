@@ -5,7 +5,6 @@ const path = require('path');
 const route = require('./routes');
 const db = require('./config/database');
 const cors = require("cors");
-//const shortid = require("shortid");
 var timeout = require('express-timeout-handler');
 const emailServices = require('./services/emailServices');
 
@@ -52,7 +51,6 @@ app.use(timeout.handler(options));
 
 
 app.use(express.json());
-
 
 //định vị đường cho layout, trong đó dirname là thư mục chứ file index do ban đầu main: src/index.js
 //app.set('views', path.join(__dirname, 'resources', 'views'));
