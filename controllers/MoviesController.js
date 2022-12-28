@@ -23,7 +23,7 @@ class MoviesController {
       })
       .populate({
         path: "lichChieu",
-        populate: { path: "tenRap", select: '_id tenRap' },
+        populate: { path: "tenRap", select: "_id tenRap" },
       })
       .populate("nguoiDanhGia", "tentaiKhoan")
       .populate("binhLuan")
@@ -44,7 +44,6 @@ class MoviesController {
       .catch((err) => {
         return res.status(500).json({ error: "Không tìm thấy thông tin phim" });
       });
-
   }
   //[GET]
   show(req, res) {
@@ -116,31 +115,51 @@ class MoviesController {
             return yyyy + "-" + mm + "-" + dd;
           };
           let st = [];
+          let biDAnhLs = [];
           data.forEach((showtime) => {
             countDuplicate = 0;
-            showtime.lichChieu.forEach((cumRap) => {
-              const date = formattedDate(new Date(cumRap.ngayChieu));
-              const filterDate = formattedDate(new Date(req.body.ngayDaChon));
-              if (
-                cumRap.tenCumRap === req.params.maCumRap &&
-                date == filterDate
-              ) {
-                countDuplicate++;
-                st.push(cumRap);
-                // res.status(200).json({ data: movies });
-              }
-            });
-            if (countDuplicate > 0)
-              movies.push({
-                tenPhim: showtime.tenPhim,
-                theLoai: showtime.theLoai,
-                moTa: showtime.moTa,
-                trailer: showtime.trailer,
-                thoiLuong: showtime.thoiLuong,
-                hinhAnh: showtime.hinhAnh,
-                biDanh: showtime.biDanh,
-                lichChieu: st,
+            if (showtime.lichChieu.length > 0) {
+              biDAnhLs.push({ name: showtime.biDanh, lich: [] });
+              showtime.lichChieu.forEach((cumRap) => {
+                const date = formattedDate(new Date(cumRap.ngayChieu));
+                const filterDate = formattedDate(new Date(req.body.ngayDaChon));
+                if (
+                  cumRap.tenCumRap === req.params.maCumRap &&
+                  date == filterDate
+                ) {
+                  countDuplicate++;
+                  st.push({ name: showtime.biDanh, lich: cumRap });
+                  // res.status(200).json({ data: movies });
+                }
               });
+            }
+            // console.log("------", biDAnhLs);
+            biDAnhLs.map((biDanh, i) => {
+              st.map((n) => {
+                if (biDanh.name === n.name) {
+                  if (!biDanh.lich.includes(n.lich)) {
+                    biDanh.lich.push(n.lich);
+                  }
+                }
+              });
+            });
+
+            if (countDuplicate > 0) {
+              biDAnhLs.map((n) => {
+                if (showtime.biDanh === n.name) {
+                  movies.push({
+                    tenPhim: showtime.tenPhim,
+                    theLoai: showtime.theLoai,
+                    moTa: showtime.moTa,
+                    trailer: showtime.trailer,
+                    thoiLuong: showtime.thoiLuong,
+                    hinhAnh: showtime.hinhAnh,
+                    biDanh: showtime.biDanh,
+                    lichChieu: n.lich,
+                  });
+                }
+              });
+            }
           });
           // console.log('dữ liệu của phim', phim)
           res.status(200).json({ data: movies });
@@ -303,7 +322,7 @@ class MoviesController {
           }
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }
   //[GET] topMoives
   top10Movies(req, res) {
