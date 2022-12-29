@@ -97,6 +97,14 @@ router.post(
   showtimeController.pushSlotsPreOrder
 );
 
+router.post(
+  "/removePreOrder",
+  Auth.checkPermission,
+  Auth.checkUser,
+  showtimeController.removeSlotsPreOrder
+);
+
+
 router.get("/",
   Auth.checkPermission,
   Auth.checkUser,

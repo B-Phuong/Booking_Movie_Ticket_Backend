@@ -4,6 +4,7 @@ const User = require("./User");
 const Schema = mongoose.Schema;
 const PreOrder = new Schema(
     {
+        maNguoiDat: { type: String },
         maLichChieu: { type: String },
         thoiHan: { type: Date },
         gheDangChon: { type: Array },

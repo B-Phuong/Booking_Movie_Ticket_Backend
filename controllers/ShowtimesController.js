@@ -579,6 +579,7 @@ class ShowTimeController {
     preOrder.maLichChieu = maLichChieu
     preOrder.gheDangChon = gheDangChon
     preOrder.thoiHan = new Date().setMinutes(new Date().getMinutes() + 2)
+    preOrder.maNguoiDat = req.user
     let result = await preOrder.save()
     let showtime = await Showtime.findById(maLichChieu)
     let orginalSlots = showtime.gheDangChon || []
@@ -605,6 +606,30 @@ class ShowTimeController {
         })
         .catch((error) => { return res.status(400).json("Lưu thất bại!") })
     }
+  }
+
+  async removeSlotsPreOrder(req, res) {
+    const { maLichChieu } = req.body
+    let preOrders = await PreOrder.find({ maLichChieu: maLichChieu, maNguoiDat: req.user })
+    let showtime = await ShowTime.findById(maLichChieu)
+
+    if (!showtime) {
+      return res.status(400).json("Khong tim thay show time")
+    }
+
+    const chairList = []
+    preOrders.forEach((preOrder) => chairList.push(...preOrder.gheDangChon));
+    let gheDangChonCache = showtime.gheDangChon;
+    chairList.forEach((chair) => {
+      // console.log("REmove chair:", chair)
+      gheDangChonCache = gheDangChonCache.filter((ghe) => ghe != chair)
+      // console.log("After remove:", gheDangChonCache)
+    })
+    showtime.gheDangChon = gheDangChonCache
+    // console.log(">> showitme gheDangCHon", showtime.gheDangChon)
+    await PreOrder.deleteMany({ maLichChieu: maLichChieu, maNguoiDat: req.user })
+    await showtime.save()
+    return res.status(200).json()
   }
 }
 module.exports = new ShowTimeController();
