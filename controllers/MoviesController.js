@@ -322,7 +322,7 @@ class MoviesController {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
   //[GET] topMoives
   top10Movies(req, res) {
@@ -336,7 +336,7 @@ class MoviesController {
         });
       })
       .catch((err) => {
-        console.log(">> in catch");
+        // console.log(">> in catch");
         return res.status(500).json({ error: "Hệ thống đang xử lý" });
       });
   }
@@ -387,7 +387,7 @@ class MoviesController {
       const movie = await Movie.findOne({ biDanh: biDanh });
       let comments = movie.binhLuan;
       movie.binhLuan = [...comments, idComment];
-      console.log(">> if");
+      // console.log(">> if");
       let isSaved = await movie.save();
       if (isSaved) {
         return res.status(200).json({ data: movie });

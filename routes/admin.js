@@ -112,7 +112,7 @@ router.get(
 //   Auth.checkPermission,
 //   // Auth.checkAdmin,
 //   async (req, res) => {
-//     console.log(req.body.public_id)
+//  // console.log(req.body.public_id)
 //     try {
 //       // Delete image from cloudinary
 //       await cloudinary.uploader.destroy(req.body.public_id, { type: "upload" });

@@ -44,7 +44,7 @@ class FoodDrinksController {
       newCombo.biDanh = slug;
     }
     //console.log("-----Combo:", newCombo)
-    console.log(">> newCombo", newCombo)
+    // console.log(">> newCombo", newCombo)
     try {
       const fileStr = req.file.path;
       const uploadResponse = await cloudinary.uploader.upload(fileStr, {
@@ -60,7 +60,7 @@ class FoodDrinksController {
         .status(201)
         .json({ message: "Thêm combo thành công", data: newCombo });
     } catch (err) {
-      console.log(">> err", err)
+      // console.log(">> err", err)
       res.status(500).json({ error: "Thêm combo thất bại" });
     }
   }
@@ -70,7 +70,7 @@ class FoodDrinksController {
       biDanh: req.params.bidanh,
     });
     if (comboInfo) {
-      //   console.log("----comboInfo", comboInfo);
+      //// console.log("----comboInfo", comboInfo);
       const comboUpdate = {
         ...comboInfo._doc,
         ...req.body,
@@ -127,7 +127,7 @@ class FoodDrinksController {
         res.status(200).json({ message: "Xóa thành công", data });
       })
       .catch((err) => {
-        console.log(err)
+        // console.log(err)
         res
           .status(500)
           .json({ message: "Hệ thống đang xử lý, vui lòng chờ" });

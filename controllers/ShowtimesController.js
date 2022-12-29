@@ -494,27 +494,37 @@ class ShowTimeController {
           tenRap: showtime.tenRap,
           tenCumRap: showtime.tenCumRap,
         });
+        const listStByTheater = await ShowTime.find({
+          tenCumRap: showtime.tenCumRap,
+        });
         await movie.lichChieu.forEach(async (st) => {
           if (
             st.ngayChieu.toLocaleString("en-AU") ==
             showtime.ngayChieu.toLocaleString("en-AU") &&
             st.tenCumRap === showtime.tenCumRap
           ) {
-            console.log("-- error Một rạp khác trong cụm rạp có phim trùng")
+            // console.log("-- error Một rạp khác trong cụm rạp có phim trùng")
             return checkSameValueInList(item, "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác") // listFailed.push({ showtime: item, error: "Một rạp khác trong cụm rạp có phim trùng giờ chiếu, vui lòng chọn thời gian khác" })
           }
         });
         var count = 0;
         await listStByTheaterAndRoom.forEach((st) => {
           if (showtimeOfMovie.lichChieu.includes(st._id) &&
-            (getTime(st.ngayChieu) < getTime(showtime.gioKetThuc) && getTime(showtime.gioKetThuc) < getTime(st.gioKetThuc) ||
-              getTime(st.ngayChieu) < getTime(showtime.ngayChieu) && getTime(showtime.ngayChieu) < getTime(st.gioKetThuc))
+            (getTime(st.ngayChieu) <= getTime(showtime.gioKetThuc) && getTime(showtime.gioKetThuc) <= getTime(st.gioKetThuc) ||
+              getTime(st.ngayChieu) <= getTime(showtime.ngayChieu) && getTime(showtime.ngayChieu) <= getTime(st.gioKetThuc))
           ) {
             count++;
-            console.log("-- error Vui lòng chọn sau")
+            // console.log("-- error Vui lòng chọn sau")
             const d = new Date(st.gioKetThuc); //d.toLocaleString("en-AU")//
             let time = d.getHours() + ":" + d.getMinutes()
             return checkSameValueInList(item, `Vui lòng chọn sau ${time}`)// listFailed.push({ showtime: item, error: `Vui lòng chọn sau ${st.gioKetThuc}` })
+          } else if (
+            (getTime(st.ngayChieu) <= getTime(showtime.gioKetThuc) && getTime(showtime.gioKetThuc) <= getTime(st.gioKetThuc) ||
+              getTime(st.ngayChieu) <= getTime(showtime.ngayChieu) && getTime(showtime.ngayChieu) <= getTime(st.gioKetThuc))) {
+            count++;
+            const d = new Date(st.gioKetThuc);
+            let time = d.getHours() + ":" + d.getMinutes()
+            return checkSameValueInList(item, "Rạp đang sử dụng để chiếu phim, vui lòng chọn thời gian khác")// listFailed.push({ showtime: item, error: `Vui lòng chọn sau ${st.gioKetThuc}` })
           }
         });
         if (count == 0) {
@@ -534,10 +544,10 @@ class ShowTimeController {
 
       let LichChieu = addShowtimeToMovie?.lichChieu;
       if (listValid.length > 0 && listNewIDs.length == listValid.length) {//
-        console.log(">> listNewIDs", listNewIDs)
+        // console.log(">> listNewIDs", listNewIDs)
         addShowtimeToMovie.lichChieu = [...LichChieu, ...listNewIDs];
         let Successful = await addShowtimeToMovie.save();
-        console.log(">> lichChieu", addShowtimeToMovie.lichChieu)
+        // console.log(">> lichChieu", addShowtimeToMovie.lichChieu)
         if (Successful && listFailed.length == 0)
           res.status(201).json({
             message: "Tạo lịch chiếu thành công",

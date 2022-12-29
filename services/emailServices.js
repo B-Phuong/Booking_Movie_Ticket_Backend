@@ -19,6 +19,7 @@ class emailService {
     const QRCode = req.body.QRCode;
     const showtimeDate = req.body.ngayChieu;
     const showtimeTime = req.body.gioChieu;
+    const { soLuongVe, donGiaVe, tongTienVe, tenCombo, soLuongCombo, donGiaCombo, tongTienCombo, tongTienBanDau, diemDaSuDung, tongTienThanhToan } = req.body
     //  const QR = req.params.QRCode
 
     // create reusable transporter object using the default SMTP transport
@@ -41,7 +42,16 @@ class emailService {
       //text: 'Hello world?', // plain text body
       html: `<p style='text-align: justify;'><span style='color: #b96ad9;'><strong>Xin chào ${name},</strong></span></p>
             <p style="text-align: justify;">CGV cám ơn quý khách đã thực hiện mua vé:</p>
-            <p style="padding: 12px; border-left: 4px solid #d0d0d0; font-style: italic; text-align: justify;">Phim ${movieName}&nbsp;chiếu v&agrave;o<span style="background-color: #ffffff;"> <strong>${showtimeDate}</strong></span> l&uacute;c <strong>${showtimeTime}&nbsp;</strong>tại rạp ${cinemaClusterName}.</p>
+            <p style="padding: 12px; border-left: 4px solid #d0d0d0; font-style: italic; text-align: justify;">Phim ${movieName}&nbsp;chiếu v&agrave;o<span style="background-color: #ffffff;"> 
+            <strong>${showtimeDate}</strong>
+            </span> l&uacute;c 
+            <strong>${showtimeTime}&nbsp;</strong>tại rạp ${cinemaClusterName}.</p>
+            <p style="text-align: left;"><strong>Tổng tiền vé:</strong> ${donGiaVe.toLocaleString("it-IT", { style: "currency", currency: "VND" })} X ${soLuongVe} = ${tongTienVe.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            <p style="text-align: left;"><strong>Combo đã đặt:</strong> ${tenCombo}</p>
+            <p style="text-align: left;"><strong>Tổng tiền combo:</strong> ${donGiaCombo.toLocaleString("it-IT", { style: "currency", currency: "VND" })} X ${soLuongCombo} =  ${tongTienCombo.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            <p style="text-align: left;"><strong>Tiền chưa sử dụng điểm tích lũy:</strong> ${tongTienBanDau.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            <p style="text-align: left;"><strong>Số điểm tích lũy đã dùng:</strong> ${diemDaSuDung} X 1.000 = ${diemDaSuDung * 1000}</p>
+            <p style="text-align: left;"><strong>Tiền đã thanh toán:</strong> ${tongTienThanhToan.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
             <p>Vui lòng lưu lại mã QR về điện thoại. Mã này sẽ được dùng trước quầy soát vé</p>
             <p>${img}</p>
             <p>Trân trọng,<br />CGV team</p>`,

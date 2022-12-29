@@ -112,7 +112,7 @@ class UsersController {
         populate: { path: "tenRap" },
       })
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         if (data) res.status(200).json({ data });
         else {
           res.status(404).json({ error: "Vui lòng thử lại" });
@@ -139,7 +139,7 @@ class UsersController {
     //console.log(req.body)
     User.findById(req.user)
       .then((user) => {
-        console.log("người dùng", user);
+        // console.log("người dùng", user);
         if (bcrypt.compareSync(req.body.matKhau, user.matKhau)) {
           if (req.body.matKhauMoi === req.body.nhapLaiMatKhau) {
             const hashPassword = bcrypt.hashSync(req.body.matKhauMoi, 10);
@@ -198,11 +198,11 @@ class UsersController {
             data.danhSachVe.map((ghe) => {
               listChair.push(ghe.maGhe);
             });
-            console.log("danh sach ghe", listChair);
+            // console.log("danh sach ghe", listChair);
             data
               .save()
               .then(() => {
-                console.log("ID", showtimeID);
+                // console.log("ID", showtimeID);
                 Showtime.findOne({ _id: showtimeID })
                   .then(async (showtime) => {
                     if (showtime) {
@@ -257,11 +257,11 @@ class UsersController {
             data.danhSachVe.map((ghe) => {
               listChair.push(ghe.maGhe);
             });
-            console.log("danh sach ghe", listChair);
+            // console.log("danh sach ghe", listChair);
             data
               .save()
               .then(() => {
-                console.log("ID", showtimeID);
+                // console.log("ID", showtimeID);
                 Showtime.findOne({ _id: showtimeID })
                   .then((showtime) => {
                     if (showtime) {

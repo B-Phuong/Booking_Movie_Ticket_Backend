@@ -15,14 +15,14 @@
 //                 setTimeout(() => {
 
 //                 },)
-//                 console.log(">> After1MinDateNow", After1MinDateNow)
+//              // console.log(">> After1MinDateNow", After1MinDateNow)
 //                 showtimeID.push(preorder.maLichChieu)
 //                 // console.log(">> currentSlots", currentSlots)
 //                 // let uniqueshowtimeID = [...new Set(showtimeID)];
 //                 // uniqueshowtimeID.forEach
 //                 // async (id) => {
 //                 let updateShowtime = await Showtime.findById(preorder.maLichChieu)
-//                 console.log(">> updateShowtime", updateShowtime)
+//              // console.log(">> updateShowtime", updateShowtime)
 //                 let currentSlots = updateShowtime.gheDangChon || []
 //                 gheDangChon.forEach((chair) => {
 //                     var index = currentSlots.findIndex((element) => element == chair);
@@ -30,7 +30,7 @@
 //                         // console.log(">> ghế đã chọn", chair)
 //                         let newArray = currentSlots.splice(index, 1);
 //                         // // console.log(">> new Array", newArray, currentSlots)
-//                         console.log(">> currentSlots", currentSlots)
+//                      // console.log(">> currentSlots", currentSlots)
 //                         updateShowtime.gheDangChon = currentSlots
 //                     }
 //                 })
