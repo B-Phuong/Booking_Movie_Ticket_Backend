@@ -19,7 +19,7 @@ class emailService {
     const QRCode = req.body.QRCode;
     const showtimeDate = req.body.ngayChieu;
     const showtimeTime = req.body.gioChieu;
-    const { soLuongVe, donGiaVe, tongTienVe, tenCombo, soLuongCombo, donGiaCombo, tongTienCombo, tongTienBanDau, diemDaSuDung, tongTienThanhToan } = req.body
+    const { soLuongVe, donGiaVe, tongTienVe, Combo, tongTienCombo, tongTienBanDau, diemDaSuDung, tongTienThanhToan } = req.body
     //  const QR = req.params.QRCode
 
     // create reusable transporter object using the default SMTP transport
@@ -34,6 +34,13 @@ class emailService {
     });
     transporter.use("compile", inlineBase64({ cidPrefix: "somePrefix_" }));
     let img = `<img src="` + QRCode + `"/>`;
+
+    let comboHtml = ``;
+    Combo.forEach((comboItem) => {
+      let tongTienCombo = comboItem.soLuongCombo * comboItem.donGiaCombo
+      comboHtml += `<p style="text-align: left;"><strong>Combo đã đặt:</strong> ${comboItem.tenCombo}</p>
+        <p style = "text-align: left;" > <strong>Thành tiền:</strong> ${Number(comboItem.donGiaCombo).toLocaleString("it-IT", { style: "currency", currency: "VND" })} X ${comboItem.soLuongCombo} =  ${Number(tongTienCombo).toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p >`
+    })
     // send mail with defined transport object
     let info = await transporter.sendMail({
       from: "CGV", // sender address
@@ -46,12 +53,12 @@ class emailService {
             <strong>${showtimeDate}</strong>
             </span> l&uacute;c 
             <strong>${showtimeTime}&nbsp;</strong>tại rạp ${cinemaClusterName}.</p>
-            <p style="text-align: left;"><strong>Tổng tiền vé:</strong> ${donGiaVe.toLocaleString("it-IT", { style: "currency", currency: "VND" })} X ${soLuongVe} = ${tongTienVe.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
-            <p style="text-align: left;"><strong>Combo đã đặt:</strong> ${tenCombo}</p>
-            <p style="text-align: left;"><strong>Tổng tiền combo:</strong> ${donGiaCombo.toLocaleString("it-IT", { style: "currency", currency: "VND" })} X ${soLuongCombo} =  ${tongTienCombo.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
-            <p style="text-align: left;"><strong>Tiền chưa sử dụng điểm tích lũy:</strong> ${tongTienBanDau.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            <p style="text-align: left;"><strong>Tổng tiền vé:</strong> ${Number(donGiaVe).toLocaleString("it-IT", { style: "currency", currency: "VND" })} X ${soLuongVe} = ${Number(tongTienThanhToan).toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            `+ comboHtml + `
+            <p style="text-align: left;"><strong>Tổng tiền combo:</strong> ${Number(tongTienCombo).toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            <p style="text-align: left;"><strong>Tiền chưa sử dụng điểm tích lũy:</strong> ${Number(tongTienBanDau).toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
             <p style="text-align: left;"><strong>Số điểm tích lũy đã dùng:</strong> ${diemDaSuDung} X 1.000 = ${diemDaSuDung * 1000}</p>
-            <p style="text-align: left;"><strong>Tiền đã thanh toán:</strong> ${tongTienThanhToan.toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
+            <p style="text-align: left;"><strong>Tiền đã thanh toán:</strong> ${Number(tongTienThanhToan).toLocaleString("it-IT", { style: "currency", currency: "VND" })}</p>
             <p>Vui lòng lưu lại mã QR về điện thoại. Mã này sẽ được dùng trước quầy soát vé</p>
             <p>${img}</p>
             <p>Trân trọng,<br />CGV team</p>`,
