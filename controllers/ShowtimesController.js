@@ -524,7 +524,7 @@ class ShowTimeController {
             count++;
             const d = new Date(st.gioKetThuc);
             let time = d.getHours() + ":" + d.getMinutes()
-            return checkSameValueInList(item, "Rạp đang sử dụng để chiếu phim, vui lòng chọn thời gian khác")// listFailed.push({ showtime: item, error: `Vui lòng chọn sau ${st.gioKetThuc}` })
+            return checkSameValueInList(item, `Rạp đang sử dụng để chiếu phim, vui lòng chọn sau ${time}`)// listFailed.push({ showtime: item, error: `Vui lòng chọn sau ${st.gioKetThuc}` })
           }
         });
         if (count == 0) {
